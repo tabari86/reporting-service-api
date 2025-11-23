@@ -1,4 +1,7 @@
+// controllers/reportController.js
+
 const Invoice = require("../models/invoice");
+const DailyReport = require("../models/dailyReport");
 
 // Aggregation für Summary
 async function calculateSummary() {
@@ -91,5 +94,27 @@ exports.getRevenuePerDay = async (req, res) => {
   }
 };
 
-// Diese Funktion nutzen wir später eventuell im Cron-Job wieder
+// Optionaler Export, falls Summary an anderen Stellen genutzt wird
 exports.calculateSummary = calculateSummary;
+
+// Diese Funktion wird vom Cron-Job genutzt
+exports.saveDailySummary = async () => {
+  const summary = await calculateSummary();
+
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  await DailyReport.findOneAndUpdate(
+    { date: today },
+    {
+      date: today,
+      totalInvoices: summary.totalInvoices,
+      totalRevenue: summary.totalRevenue,
+      openInvoices: summary.openInvoices,
+      paidInvoices: summary.paidInvoices,
+      cancelledInvoices: summary.cancelledInvoices,
+    },
+    { upsert: true }
+  );
+
+  return summary;
+};

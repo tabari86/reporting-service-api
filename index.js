@@ -6,6 +6,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cron = require("node-cron");
 const reportRoutes = require("./routes/reportRoutes");
+const reportController = require("./controllers/reportController");
 
 // 3) Express-App erstellen
 const app = express();
@@ -25,9 +26,9 @@ app.get("/", (req, res) => {
   res.send("Reporting Service API läuft 🚀");
 });
 
-// 7) Geplanter Cron-Job (z. B. täglich um 01:00 Uhr)
-// Cron-Syntax: "Minute Stunde * * *"
-// "0 1 * * *" = jeden Tag um 01:00
+// 7) Geplanter Cron-Job
+// "0 1 * * *" = jeden Tag um 01:00 Uhr
+// Zum Testen kannst du zeitweise "* * * * *" verwenden (jede Minute)
 cron.schedule("0 1 * * *", async () => {
   try {
     console.log(
@@ -35,10 +36,9 @@ cron.schedule("0 1 * * *", async () => {
       new Date().toISOString()
     );
 
-    // TODO: Später hier MongoDB-Aggregationen einbauen,
-    // z. B. Umsatz pro Tag/Kunde berechnen und in einer eigenen Collection speichern.
+    const summary = await reportController.saveDailySummary();
 
-    console.log("✅ Täglicher Reporting-Job erfolgreich beendet");
+    console.log("✅ Daily Summary gespeichert:", summary);
   } catch (err) {
     console.error("❌ Fehler im Reporting-Job:", err.message);
   }
