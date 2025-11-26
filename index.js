@@ -10,9 +10,11 @@ require("dotenv").config({
 const express = require("express");
 const mongoose = require("mongoose");
 const cron = require("node-cron");
-
+const logger = require("./utils/logger");
+const requestLogger = require("./middleware/requestLogger");
 const reportRoutes = require("./routes/reportRoutes");
 const reportController = require("./controllers/reportController");
+const { sendTestEmail } = require("./services/mailService");
 
 const app = express();
 
@@ -21,6 +23,53 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 // JSON-Body parsen
 app.use(express.json());
+
+// HTTP-Request-Logging
+app.use(requestLogger);
+
+// reports-Routen
+app.use("/reports", reportRoutes);
+
+// Health-Check – einfacher Status
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "reporting-service-api",
+    time: new Date().toISOString(),
+    uptimeSeconds: process.uptime(),
+  });
+});
+
+// Einfache Metriken (kannst du später erweitern)
+app.get("/metrics", (req, res) => {
+  const memory = process.memoryUsage();
+
+  res.json({
+    service: "reporting-service-api",
+    uptimeSeconds: process.uptime(),
+    rss: memory.rss,
+    heapTotal: memory.heapTotal,
+    heapUsed: memory.heapUsed,
+    external: memory.external,
+    nodeEnv: process.env.NODE_ENV || "development",
+  });
+});
+
+// Monitoring: Test-E-Mail über Mailtrap
+app.get("/monitoring/email-test", async (req, res) => {
+  try {
+    await sendTestEmail();
+    res.json({
+      message:
+        "Test-E-Mail wurde (sofern Mailtrap konfiguriert ist) versendet.",
+    });
+  } catch (err) {
+    console.error("Fehler beim Senden der Test-E-Mail:", err.message);
+    res
+      .status(500)
+      .json({ message: "Test-E-Mail konnte nicht gesendet werden." });
+  }
+});
 
 // Health-Route
 app.get("/", (req, res) => {
@@ -52,17 +101,18 @@ if (process.env.NODE_ENV !== "test") {
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
-    console.log("✅ Mit MongoDB verbunden (Reporting Service)");
+    logger.info("✅ Mit MongoDB verbunden (Reporting Service)");
 
-    // Server nur starten, wenn wir NICHT im Test-Modus sind
     if (process.env.NODE_ENV !== "test") {
       app.listen(PORT, () => {
-        console.log(`Reporting Service läuft auf http://localhost:${PORT}`);
+        logger.info(`Reporting Service läuft auf http://localhost:${PORT}`);
       });
     }
   })
   .catch((err) => {
-    console.error("Konnte nicht mit MongoDB verbinden:", err.message);
+    logger.error(
+      `Fehler bei Mongo-Verbindung (Reporting Service): ${err.message}`
+    );
     process.exit(1);
   });
 
