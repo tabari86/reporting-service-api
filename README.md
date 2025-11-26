@@ -70,8 +70,17 @@ Dafür kommen **Jest** (Test Runner) und **Supertest** (HTTP-Tests für Express-
 - Alle wichtigen Aggregationen (Gesamtumsatz, Anzahl Rechnungen, Umsatz pro Tag) werden mit Beispieldaten geprüft
 
 Tests ausführen:
-```bash
 npm test
+
+## Monitoring & Logging
+
+Der Reporting Service verfügt über einfache, aber praxisnahe Monitoring- und Logging-Features:
+
+- Zentrales Logging über ein eigenes `logger`-Utility
+- HTTP-Request-Logging über Middleware
+- Health-Check unter `GET /health` (Status, Service-Name, Uptime)
+- Einfache Metriken unter `GET /metrics` (Uptime, Speicherverbrauch, Node-Environment)
+- Monitoring-E-Mail-Test über `GET /monitoring/email-test` (in Kombination mit Mailtrap)
 
 
 
