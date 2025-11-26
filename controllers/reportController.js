@@ -2,6 +2,7 @@
 
 const Invoice = require("../models/invoice");
 const DailyReport = require("../models/dailyReport");
+const { generateDailyReportPdf } = require("../services/pdfService");
 
 // Aggregation für Summary
 async function calculateSummary() {
@@ -117,4 +118,24 @@ exports.saveDailySummary = async () => {
   );
 
   return summary;
+};
+
+// PDF-Report für den aktuellen Tag
+exports.getDailyReportPdf = async (req, res) => {
+  try {
+    const pdfBuffer = await generateDailyReportPdf();
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Length": pdfBuffer.length,
+      "Content-Disposition": 'inline; filename="daily-report.pdf"',
+    });
+
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error("Fehler beim Erzeugen des PDF-Reports:", err);
+    res
+      .status(500)
+      .json({ message: "PDF-Report konnte nicht erzeugt werden." });
+  }
 };

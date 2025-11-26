@@ -15,6 +15,7 @@ const requestLogger = require("./middleware/requestLogger");
 const reportRoutes = require("./routes/reportRoutes");
 const reportController = require("./controllers/reportController");
 const { sendTestEmail } = require("./services/mailService");
+const setupSwagger = require("./swagger/reportingSwagger");
 
 const app = express();
 
@@ -40,7 +41,12 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Einfache Metriken (kannst du später erweitern)
+// Swagger/OpenAPI
+if (process.env.NODE_ENV !== "test") {
+  setupSwagger(app);
+}
+
+// Einfache Metriken
 app.get("/metrics", (req, res) => {
   const memory = process.memoryUsage();
 
