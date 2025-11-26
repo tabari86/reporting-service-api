@@ -83,7 +83,40 @@ Der Reporting Service verfügt über einfache, aber praxisnahe Monitoring- und L
 - Monitoring-E-Mail-Test über `GET /monitoring/email-test` (in Kombination mit Mailtrap)
 
 
+## Docker Support
 
+Der reporting-service-api kann vollständig in einer Container-Umgebung betrieben werden.
+Das Repository enthält einen produktionsreifen Dockerfile, der:
+
+Node.js (Alpine) verwendet
+nur Produktions-Dependencies installiert
+alle relevanten Dateien in das Image übernimmt
+einen schlanken, schnellen Container erzeugt
+
+## Docker Image bauen:
+docker build -t reporting-service-api:latest .
+
+Container starten:
+docker run -p 4000:4000 reporting-service-api:latest
+
+## PDF-Reporting (Daily Report)
+
+Der Service erzeugt tägliche PDF-Reports über:
+
+Anzahl der Rechnungen
+Gesamtumsatz
+Umsatzentwicklung je Tag
+Die Erstellung erfolgt über PDFKit.
+
+PDF-Endpunkt
+GET /reports/daily-report.pdf
+
+Dieser Endpunkt erzeugt on-the-fly ein PDF und liefert es direkt zurück.
+
+Test-Abdeckung
+Der PDF-Generator ist vollständig mit Jest + Supertest getestet:
+
+npm test
 
 
 
