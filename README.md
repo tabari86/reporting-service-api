@@ -59,6 +59,19 @@ reporting-service-api
 ├── index.js
 └── .env
 
+## Tests / Testing
+
+
+Der Reporting Service wird mit automatisierten Tests abgesichert.  
+Dafür kommen **Jest** (Test Runner) und **Supertest** (HTTP-Tests für Express-Endpoints) zum Einsatz.
+
+- Unit-/Integrationstests für die Reporting-Endpunkte (`/reports/summary`, `/reports/revenue-per-day`)
+- Tests laufen gegen eine eigene Test-Datenbank (per `NODE_ENV=test`)
+- Alle wichtigen Aggregationen (Gesamtumsatz, Anzahl Rechnungen, Umsatz pro Tag) werden mit Beispieldaten geprüft
+
+Tests ausführen:
+```bash
+npm test
 
 
 
