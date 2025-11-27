@@ -16,6 +16,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const reportController = require("./controllers/reportController");
 const { sendTestEmail } = require("./services/mailService");
 const setupSwagger = require("./swagger/reportingSwagger");
+const apiKeyAuth = require("./middleware/apiKeyAuth");
 
 const app = express();
 
@@ -24,6 +25,11 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 // JSON-Body parsen
 app.use(express.json());
+
+// API-Key-Schutz aktivieren (außer Test)
+if (process.env.NODE_ENV !== "test") {
+  app.use(apiKeyAuth);
+}
 
 // HTTP-Request-Logging
 app.use(requestLogger);
