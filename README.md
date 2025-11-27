@@ -118,7 +118,36 @@ Der PDF-Generator ist vollständig mit Jest + Supertest getestet:
 
 npm test
 
+## API-Key-Sicherheit
 
+Der Reporting-Service ist jetzt durch eine API-Key-Authentifizierung geschützt.
+Alle Endpunkte unter /reports/* müssen einen gültigen API-Schlüssel im Header senden.
+
+# Wie der API-Key funktioniert
+
+Der Server erwartet den Key im Header:
+x-api-key: dein_api_key
+
+# Der API-Key wird in der .env gesetzt:
+REPORTING_API_KEY=meinGeheimerKey123
+Beispiel-Request (cURL)
+curl -H "x-api-key: meinGeheimerKey123" http://localhost:4000/reports/summary
+
+Beispiel im JavaScript/Frontend
+fetch("http://localhost:4000/reports/summary", {
+  headers: {
+    "x-api-key": "meinGeheimerKey123"
+  }
+})
+  .then(r => r.json())
+  .then(console.log);
+
+Verhalten bei ungültigem API-Key
+
+Statuscodes:
+Status	Bedeutung
+401 Unauthorized	Kein API-Key angegeben
+403 Forbidden	API-Key ist falsch
 
 
 
