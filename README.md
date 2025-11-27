@@ -150,7 +150,53 @@ Status	Bedeutung
 403 Forbidden	API-Key ist falsch
 
 
+## Redis Caching (High-Performance Analytics)
 
+Der Reporting-Service nutzt Redis, um häufig abgefragte Reporting-Ergebnisse schnell und skalierbar bereitzustellen.
+Dies reduziert MongoDB-Last und beschleunigt Analytics-Abfragen unter Last erheblich.
+
+# Was wird gecached?
+Endpoint	Beschreibung	TTL
+/reports/summary	Gesamtstatistik (Invoices, Revenue, Statusverteilung)	60 Sekunden
+/reports/revenue-per-day	Umsatz nach Tagen	60 Sekunden
+
+# Wie funktioniert es?
+
+Anfrage kommt rein → Service prüft zuerst Redis
+
+Wenn Cache-Hit → sofort Antwort, ohne Datenbank
+
+Wenn Cache-Miss → MongoDB-Query ausführen
+
+Ergebnis → in Redis gespeichert
+
+Client bekommt frische Daten
+
+# Vorteile
+
+Extrem schnelle Response-Zeiten
+
+Produktionsreif (Microservice-Architektur)
+
+Entlastet die Datenbank → ideal für hohe Last
+
+Einfach skalierbar (Cluster-ready)
+
+# Beispiel-Konfiguration für .env
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_TTL=60
+
+# Docker-Compose Support
+
+Redis läuft voll integriert über docker-compose.yml:
+
+redis:
+  image: redis:7-alpine
+  container_name: reporting-redis
+  ports:
+    - "6379:6379"
 
 
 
