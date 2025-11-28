@@ -192,11 +192,23 @@ REDIS_TTL=60
 
 Redis läuft voll integriert über docker-compose.yml:
 
-redis:
+# redis:
   image: redis:7-alpine
   container_name: reporting-redis
   ports:
     - "6379:6379"
+
+## API Security – API-Key
+
+Die Reporting-Endpoints (`/reports/*`) und Monitoring-Funktionen (`/monitoring/*`) sind mit einem einfachen API-Key-Schutz versehen.  
+Der Key wird aus der Umgebungsvariable `API_KEY` geladen und muss über den HTTP-Header `x-api-key` übertragen werden.
+
+Beispiel (Postman / HTTP-Client):
+
+- Header: `x-api-key: supersecret-reporting-ke`
+
+Die Endpoints `/health` und `/metrics` bleiben bewusst ohne Authentifizierung erreichbar, um Monitoring- und Orchestrierungs-Tools den Zugriff zu ermöglichen.
+
 
 
 
