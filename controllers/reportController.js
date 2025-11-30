@@ -90,14 +90,12 @@ exports.getSummary = async (req, res) => {
   }
 };
 
-// -------------------------------------------------
-// GET /reports/revenue-per-day (mit Redis-Cache)
-// -------------------------------------------------
+// GET /reports/revenue-per-day
 exports.getRevenuePerDay = async (req, res) => {
   const cacheKey = "reports:revenue-per-day";
 
-  // 1) Cache versuchen
   try {
+    // 1) Cache versuchen
     const cached = await cacheService.get(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
@@ -107,7 +105,6 @@ exports.getRevenuePerDay = async (req, res) => {
     console.warn("Konnte Revenue-per-Day nicht aus Cache lesen:", err.message);
   }
 
-  // 2) Aggregation aus MongoDB
   try {
     const result = await Invoice.aggregate([
       {
@@ -130,7 +127,7 @@ exports.getRevenuePerDay = async (req, res) => {
       invoiceCount: row.invoiceCount,
     }));
 
-    // 3) Im Cache speichern (60 Sekunden)
+    // 2) Im Cache speichern
     try {
       await cacheService.set(cacheKey, JSON.stringify(revenuePerDay), 60);
     } catch (err) {
@@ -140,7 +137,7 @@ exports.getRevenuePerDay = async (req, res) => {
       );
     }
 
-    // 4) Response im alten Format, wie Tests es erwarten
+    // 3) Response
     res.json(revenuePerDay);
   } catch (err) {
     console.error("Fehler bei getRevenuePerDay:", err);

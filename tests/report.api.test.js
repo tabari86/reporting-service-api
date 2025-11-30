@@ -1,7 +1,22 @@
 const request = require("supertest");
 const mongoose = require("mongoose");
 const app = require("../index");
+const jwt = require("jsonwebtoken");
 const Invoice = require("../models/invoice");
+
+// Helper: Test-JWT erzeugen
+const TEST_JWT_SECRET = process.env.JWT_SECRET || "test-reporting-jwt-secret";
+
+function createTestToken(role = "report_reader") {
+  return jwt.sign(
+    {
+      sub: "test-user",
+      role,
+    },
+    TEST_JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+}
 
 describe("Reporting Service API", () => {
   // vor jedem Test: Test-Datenbank leeren
@@ -22,7 +37,9 @@ describe("Reporting Service API", () => {
       { customerName: "Kunde C", amount: 50, status: "CANCELLED" },
     ]);
 
-    const res = await request(app).get("/reports/summary");
+    const res = await request(app)
+      .get("/reports/summary")
+      .set("Authorization", `Bearer ${createTestToken()}`);
 
     expect(res.status).toBe(200);
     expect(res.body.totalInvoices).toBe(3);
@@ -57,7 +74,9 @@ describe("Reporting Service API", () => {
       },
     ]);
 
-    const res = await request(app).get("/reports/revenue-per-day");
+    const res = await request(app)
+      .get("/reports/revenue-per-day") // richtiger Endpoint
+      .set("Authorization", `Bearer ${createTestToken()}`); // JWT mitgeben
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);

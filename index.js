@@ -17,6 +17,8 @@ const reportController = require("./controllers/reportController");
 const { sendTestEmail } = require("./services/mailService");
 const setupSwagger = require("./swagger/reportingSwagger");
 const apiKeyAuth = require("./middleware/apiKeyAuth");
+const jwtAuth = require("./middleware/jwtAuth");
+const requireRole = require("./middleware/requireRole");
 
 const app = express();
 
@@ -26,14 +28,13 @@ const MONGODB_URI = process.env.MONGODB_URI;
 // JSON-Body parsen
 app.use(express.json());
 
+// API-Key-Schutz aktivieren (außer Test)
+if (process.env.NODE_ENV !== "test") {
+  app.use(apiKeyAuth);
+}
+
 // HTTP-Request-Logging
 app.use(requestLogger);
-
-// API-Key-Schutz nur im echten Betrieb
-if (process.env.NODE_ENV !== "test") {
-  app.use("/reports", apiKeyAuth);
-  app.use("/monitoring", apiKeyAuth);
-}
 
 // Health-Check – einfacher Status
 app.get("/health", (req, res) => {
@@ -45,7 +46,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Swagger/OpenAPI
+// Swagger/OpenAPI (nur außerhalb von Tests)
 if (process.env.NODE_ENV !== "test") {
   setupSwagger(app);
 }
@@ -83,26 +84,32 @@ app.get("/monitoring/email-test", async (req, res) => {
 
 // Health-Route
 app.get("/", (req, res) => {
-  res.send("Reporting Service API läuft 🚀");
+  res.send("Reporting Service API läuft ");
 });
 
-// Reporting-Routen
-app.use("/reports", reportRoutes);
+// Reporting-Routen – geschützt mit JWT + Rollen
+// Erlaubte Rollen: "report_reader" und "admin"
+app.use(
+  "/reports",
+  jwtAuth,
+  requireRole("report_reader", "admin"),
+  reportRoutes
+);
 
 // Cron-Job NUR im normalen Modus (nicht bei Tests)
 if (process.env.NODE_ENV !== "test") {
   cron.schedule("0 1 * * *", async () => {
     try {
       console.log(
-        "📊 Täglicher Reporting-Job gestartet:",
+        "Täglicher Reporting-Job gestartet:",
         new Date().toISOString()
       );
 
       // tägliche Summary speichern
       const summary = await reportController.saveDailySummary();
-      console.log("✅ Daily Summary gespeichert:", summary);
+      console.log(" Daily Summary gespeichert:", summary);
     } catch (err) {
-      console.error("❌ Fehler im Reporting-Job:", err.message);
+      console.error(" Fehler im Reporting-Job:", err.message);
     }
   });
 }
