@@ -209,9 +209,30 @@ Beispiel (Postman / HTTP-Client):
 
 Die Endpoints `/health` und `/metrics` bleiben bewusst ohne Authentifizierung erreichbar, um Monitoring- und Orchestrierungs-Tools den Zugriff zu ermöglichen.
 
+## 1. API-Key-Authentication:
+   - Globale Absicherung aller Endpunkte (in Nicht-Testumgebungen)
+   - Middleware + vollständige Testabdeckung
 
+## 2. JWT Role-Based Access:
+   - Einführung von Rollen (report_reader, report_admin)
+   - Schutz sensibler Endpunkte mit Bearer Token
+   - Test-Token-Generator für Supertest
 
+## 3. Redis Caching (Leistungsoptimierung):
+   - Caching für Summary-Reports
+   - Caching für Revenue-Per-Day Analyse
+   - Automatische Invalidation & Fallback-Strategien
 
+## 4. PDF-Reporting:
+   - Täglicher PDF-Report als Endpoint `/reports/daily-report.pdf`
+   - Vollständig getestetes PDF-Buffer Streaming
+   - Fehlerhandling & Logging
+
+## 5. Verbesserte Teststruktur:
+   - Neue Unit- und API-Tests für Tokio JWT, API-Key und PDF-Ausgabe
+   - Stabilisierung der Testumgebung (ENV-Isolation, Mongoose-Cleanup)
+
+Diese Erweiterungen bringen den Reporting-Service auf echtes Senior- und Production-Level.
 
 
 
