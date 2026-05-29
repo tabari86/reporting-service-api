@@ -29,12 +29,9 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(express.json());
 
 // API-Key-Schutz aktivieren (außer Test)
-if (process.env.NODE_ENV !== "test") {
-  app.use(apiKeyAuth);
-}
-
 // HTTP-Request-Logging
 app.use(requestLogger);
+
 
 // Health-Check – einfacher Status
 app.get("/health", (req, res) => {
@@ -49,6 +46,10 @@ app.get("/health", (req, res) => {
 // Swagger/OpenAPI (nur außerhalb von Tests)
 if (process.env.NODE_ENV !== "test") {
   setupSwagger(app);
+}
+
+if (process.env.NODE_ENV !== "test") {
+  app.use(apiKeyAuth);
 }
 
 // Einfache Metriken

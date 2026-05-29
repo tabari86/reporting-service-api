@@ -1,37 +1,78 @@
 # Reporting Service API
 
-A backend microservice for invoice analytics and reporting, built with Node.js, Express, MongoDB, Redis and Docker.
+A production-oriented backend microservice for invoice analytics, reporting, PDF generation and monitoring, built with Node.js, Express, MongoDB, Redis, Docker and Swagger.
 
-![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=nodedotjs)
-![Express](https://img.shields.io/badge/Express.js-API-black?logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green?logo=mongodb)
-![Redis](https://img.shields.io/badge/Redis-Caching-red?logo=redis)
-![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
-![Tests](https://img.shields.io/badge/Tests-Jest%20%2B%20Supertest-orange?logo=jest)
+
+
+
+
+
+\
+
+---
 
 ## About the Project
 
-Reporting Service API is an independent microservice for analyzing invoice data.
+Reporting Service API is a standalone microservice responsible for invoice analytics and reporting.
 
-The service reads invoice records from MongoDB, calculates revenue and status statistics, provides reporting endpoints, supports Redis caching, and can generate daily PDF reports.
+The service aggregates invoice data stored in MongoDB, provides reporting endpoints, generates PDF reports, exposes monitoring endpoints, supports optional Redis caching and includes Swagger/OpenAPI documentation.
 
-It is designed as a practical backend service that can be integrated into larger systems, for example together with separate invoice or user services.
+The project demonstrates common backend concepts such as:
 
-## Key Features
+* REST API design
+* API-Key authentication
+* JWT authentication
+* Role-based authorization
+* MongoDB aggregation
+* PDF generation
+* Health monitoring
+* Automated testing
+* Docker deployment
 
-| Feature           | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| Invoice Analytics | Summary reports for invoices, revenue and payment status |
-| Revenue per Day   | Groups invoice revenue by date                           |
-| Daily Reports     | Cron job creates daily report snapshots                  |
-| PDF Export        | Generates daily PDF reports on demand                    |
-| API-Key Security  | Protects reporting endpoints via `x-api-key`             |
-| JWT Role Access   | Supports role-based access for report users/admins       |
-| Redis Caching     | Caches report results and reduces database load          |
-| Health Check      | Provides service status via `/health`                    |
-| Metrics Endpoint  | Provides runtime metrics via `/metrics`                  |
-| Docker Support    | Runs in a containerized environment                      |
-| Automated Tests   | Jest and Supertest test coverage                         |
+---
+
+## Swagger Documentation
+
+Swagger UI is available after starting the application:
+
+```text
+http://localhost:4000/api-docs
+```
+
+The documentation includes:
+
+* Available endpoints
+* Request descriptions
+* Response information
+* API-Key authentication
+* JWT authentication
+
+### Swagger Preview
+
+Interactive API documentation with API-Key and JWT authentication support.
+
+![Swagger UI](docs/swagger-ui.png)
+
+---
+
+## Features
+
+| Feature            | Description                    |
+| ------------------ | ------------------------------ |
+| Invoice Analytics  | Revenue and invoice statistics |
+| Revenue Reports    | Revenue grouped by day         |
+| PDF Export         | Daily report generation as PDF |
+| API-Key Security   | Header-based API protection    |
+| JWT Authentication | Bearer token validation        |
+| Role Authorization | Role-based access control      |
+| Health Endpoint    | Service monitoring             |
+| Metrics Endpoint   | Runtime statistics             |
+| Redis Cache        | Optional response caching      |
+| Docker Support     | Container deployment           |
+| Swagger/OpenAPI    | Interactive API documentation  |
+| Automated Tests    | Jest + Supertest               |
+
+---
 
 ## Tech Stack
 
@@ -41,33 +82,46 @@ It is designed as a practical backend service that can be integrated into larger
 * Mongoose
 * Redis
 * Docker
+* Swagger / OpenAPI
+* JWT
 * Jest
 * Supertest
 * PDFKit
 * node-cron
-* Swagger / OpenAPI
+
+---
 
 ## API Endpoints
 
-| Method | Endpoint                    | Description                                             |
-| ------ | --------------------------- | ------------------------------------------------------- |
-| GET    | `/reports/summary`          | Returns total invoices, total revenue and status counts |
-| GET    | `/reports/revenue-per-day`  | Returns revenue grouped by day                          |
-| GET    | `/reports/daily-report.pdf` | Generates and downloads a PDF report                    |
-| GET    | `/health`                   | Health check endpoint                                   |
-| GET    | `/metrics`                  | Basic runtime metrics                                   |
+| Method | Endpoint                    | Description                |
+| ------ | --------------------------- | -------------------------- |
+| GET    | `/reports/summary`          | Invoice summary statistics |
+| GET    | `/reports/revenue-per-day`  | Revenue grouped by day     |
+| GET    | `/reports/daily-report.pdf` | Generate PDF report        |
+| GET    | `/health`                   | Service health check       |
+| GET    | `/metrics`                  | Runtime metrics            |
 
-All `/reports/*` endpoints require an API key in the request header:
+---
+
+## Authentication
+
+Protected reporting endpoints require:
+
+### API Key
 
 ```http
 x-api-key: your_api_key_here
 ```
 
-## Example Request
+### JWT
 
-```bash
-curl -H "x-api-key: your_api_key_here" http://localhost:4000/reports/summary
+```http
+Authorization: Bearer <jwt-token>
 ```
+
+Swagger supports both authentication methods through the **Authorize** button.
+
+---
 
 ## Project Structure
 
@@ -82,26 +136,31 @@ reporting-service-api/
 ├── tests/
 ├── utils/
 ├── index.js
-├── swagger.js
 ├── Dockerfile
 ├── package.json
 ├── .env.example
 └── README.md
 ```
 
+---
+
 ## Environment Variables
 
-Create a `.env` file based on `.env.example`.
+Create a local `.env` file based on `.env.example`.
 
 ```env
 PORT=4000
-MONGODB_URI=mongodb://localhost:27017/reporting_service
+MONGODB_URI=mongodb://127.0.0.1:27017/reporting_service
 API_KEY=your_api_key_here
 JWT_SECRET=your_jwt_secret_here
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_TTL=60
+
+# Optional
+REDIS_URL=
 ```
+
+If Redis is not installed locally, leave `REDIS_URL` empty.
+
+---
 
 ## Installation
 
@@ -111,17 +170,15 @@ cd reporting-service-api
 npm install
 ```
 
-## Run the Project
+---
 
-```bash
-npm run dev
-```
-
-or:
+## Start Application
 
 ```bash
 npm start
 ```
+
+---
 
 ## Run Tests
 
@@ -129,43 +186,67 @@ npm start
 npm test
 ```
 
+All current Jest test suites pass successfully.
+
+---
+
 ## Docker
 
-Build the Docker image:
+Build image:
 
 ```bash
-docker build -t reporting-service-api:latest .
+docker build -t reporting-service-api .
 ```
 
-Run the container:
+Run container:
 
 ```bash
-docker run -p 4000:4000 reporting-service-api:latest
+docker run -p 4000:4000 reporting-service-api
 ```
+
+---
+
+## Monitoring
+
+Health endpoint:
+
+```text
+http://localhost:4000/health
+```
+
+Metrics endpoint:
+
+```text
+http://localhost:4000/metrics
+```
+
+---
 
 ## Security Notes
 
-Sensitive environment files such as `.env` and `.env.test` are ignored by Git.
+The following files are ignored by Git:
 
-Only `.env.example` is included in the repository as a safe template.
+```text
+.env
+.env.test
+```
+
+Only `.env.example` is committed to the repository.
+
+---
 
 ## Author
 
 Moj Tabari
-GitHub: https://github.com/tabari86
 
+Website : 
+https://mtintelligence.ai
 
+GitHub:
+https://github.com/tabari86
 
-
-
-
-
-
-
-
-
-
-
+LinkedIn : 
+https://www.linkedin.com/in/moj-tabari-04a400227/
 
 
 

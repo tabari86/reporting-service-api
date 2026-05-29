@@ -3,19 +3,36 @@ const swaggerUi = require("swagger-ui-express");
 
 const options = {
   definition: {
-    openapi: "3.0.3",
-    info: {
-      title: "Reporting Service API",
-      version: "1.0.0",
-      description: "OpenAPI-Dokumentation für den Reporting-Service",
-    },
-    servers: [
-      {
-        url: "http://localhost:4000",
-        description: "Local Dev Server",
-      },
-    ],
+  openapi: "3.0.3",
+  info: {
+    title: "Reporting Service API",
+    version: "1.0.0",
+    description: "OpenAPI-Dokumentation für den Reporting-Service",
   },
+
+  servers: [
+    {
+      url: "http://localhost:4000",
+      description: "Local Dev Server",
+    },
+  ],
+
+  components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: "apiKey",
+        in: "header",
+        name: "x-api-key",
+      },
+
+      BearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+  },
+},
   apis: ["./routes/*.js", "./controllers/*.js"],
 };
 
