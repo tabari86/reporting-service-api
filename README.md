@@ -1,13 +1,13 @@
 # Reporting Service API
 
+![Node.js](https://img.shields.io/badge/Node.js-22-green?logo=nodedotjs)
+![Express](https://img.shields.io/badge/Express-API-black?logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green?logo=mongodb)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
+![Jest](https://img.shields.io/badge/Tests-Passing-success?logo=jest)
+![Swagger](https://img.shields.io/badge/OpenAPI-3.0-brightgreen)
+
 A production-oriented backend microservice for invoice analytics, reporting, PDF generation and monitoring, built with Node.js, Express, MongoDB, Redis, Docker and Swagger.
-
-
-
-
-
-
-\
 
 ---
 
