@@ -139,6 +139,7 @@ reporting-service-api/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .dockerignore
+├── .github/workflows/ci.yml
 ├── package.json
 ├── .env.example
 └── README.md
@@ -189,6 +190,29 @@ npm test
 ```
 
 All current Jest test suites pass successfully.
+
+---
+
+## Continuous Integration
+
+This project uses GitHub Actions as a basic CI quality gate.
+
+The CI workflow runs automatically on pushes and pull requests to the `main` branch.
+
+The workflow performs the following checks:
+
+* installs dependencies with `npm ci`
+* starts a MongoDB service for integration tests
+* runs the automated Jest test suite
+* validates that the Docker image can be built successfully
+
+Redis is not required during CI test execution because caching is disabled in the test environment.
+
+The workflow file is located at:
+
+```text
+.github/workflows/ci.yml
+```
 
 ---
 
