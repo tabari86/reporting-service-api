@@ -137,6 +137,8 @@ reporting-service-api/
 ├── utils/
 ├── index.js
 ├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── package.json
 ├── .env.example
 └── README.md
@@ -192,17 +194,62 @@ All current Jest test suites pass successfully.
 
 ## Docker
 
-Build image:
+The application can be run either as a standalone Docker container or as a complete local development stack with Docker Compose.
+
+### Build Docker Image
 
 ```bash
 docker build -t reporting-service-api .
 ```
 
-Run container:
+### Run Container Manually
 
 ```bash
 docker run -p 4000:4000 reporting-service-api
 ```
+
+For manual container runs, MongoDB and optional Redis must already be available and configured through environment variables.
+
+### Run with Docker Compose
+
+Docker Compose starts the API together with MongoDB and Redis:
+
+```bash
+docker compose up --build
+```
+
+The local Compose setup includes:
+
+* API service on port `4000`
+* MongoDB on port `27017`
+* Redis on port `6379`
+* MongoDB volume for persistent local data
+* Health checks for MongoDB and Redis before starting the API
+
+After startup, the service is available at:
+
+```text
+http://localhost:4000
+```
+
+Swagger UI is available at:
+
+```text
+http://localhost:4000/api-docs
+```
+
+To stop the local stack:
+
+```bash
+docker compose down
+```
+
+To stop the stack and remove the MongoDB volume:
+
+```bash
+docker compose down -v
+```
+
 
 ---
 
@@ -242,8 +289,6 @@ Moj Tabari
 Website : 
 https://mtintelligence.ai
 
-GitHub:
-https://github.com/tabari86
 
 LinkedIn : 
 https://www.linkedin.com/in/moj-tabari-04a400227/

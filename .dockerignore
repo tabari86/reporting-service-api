@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.github
+
+coverage
+.DS_Store
+
+README.md
+docs/swagger-ui.png
