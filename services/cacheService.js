@@ -50,7 +50,20 @@ async function set(key, value, ttlSeconds = 60) {
   }
 }
 
+function getStatus() {
+  if (isTest || !REDIS_URL) {
+    return "not_configured";
+  }
+
+  if (client && isReady) {
+    return "connected";
+  }
+
+  return "disconnected";
+}
+
 module.exports = {
   get,
   set,
+  getStatus,
 };

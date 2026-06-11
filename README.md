@@ -99,6 +99,7 @@ Interactive API documentation with API-Key and JWT authentication support.
 | GET    | `/reports/revenue-per-day`  | Revenue grouped by day     |
 | GET    | `/reports/daily-report.pdf` | Generate PDF report        |
 | GET    | `/health`                   | Service health check       |
+| GET    | `/ready`                    | Dependency readiness check |
 | GET    | `/metrics`                  | Runtime metrics            |
 
 ---
@@ -285,11 +286,24 @@ Health endpoint:
 http://localhost:4000/health
 ```
 
+Readiness endpoint:
+
+```text
+http://localhost:4000/ready
+```
+
 Metrics endpoint:
 
 ```text
 http://localhost:4000/metrics
 ```
+
+`/health` checks whether the API process is running.
+
+`/ready` checks whether the service is ready to handle requests by reporting the status of required and optional dependencies.
+
+MongoDB is treated as a required dependency. Redis is optional and does not make the service unavailable when it is not configured.
+
 
 ---
 

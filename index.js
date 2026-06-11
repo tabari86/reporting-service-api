@@ -19,6 +19,7 @@ const setupSwagger = require("./swagger/reportingSwagger");
 const apiKeyAuth = require("./middleware/apiKeyAuth");
 const jwtAuth = require("./middleware/jwtAuth");
 const requireRole = require("./middleware/requireRole");
+const cacheService = require("./services/cacheService");
 
 const app = express();
 
@@ -32,6 +33,26 @@ app.use(express.json());
 // HTTP-Request-Logging
 app.use(requestLogger);
 
+
+// Readiness-Check – prüft, ob benötigte Abhängigkeiten verfügbar sind
+app.get("/ready", (req, res) => {
+  const mongoStatus =
+    mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+
+  const redisStatus = cacheService.getStatus();
+
+  const ready = mongoStatus === "connected";
+
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ready" : "not_ready",
+    service: "reporting-service-api",
+    dependencies: {
+      mongodb: mongoStatus,
+      redis: redisStatus,
+    },
+    time: new Date().toISOString(),
+  });
+});
 
 // Health-Check – einfacher Status
 app.get("/health", (req, res) => {
