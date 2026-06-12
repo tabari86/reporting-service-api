@@ -18,26 +18,27 @@ if (!isTest && REDIS_URL) {
     isReady = true;
   });
 
-  // Verbindung starten
+  client.on("end", () => {
+    isReady = false;
+  });
+
   client.connect().catch((err) => {
     console.warn("Konnte nicht mit Redis verbinden:", err.message);
   });
 }
 
-// Hilfsfunktion: Cache aktiviert?
 function cacheEnabled() {
   return client && isReady;
 }
 
-// Wert aus dem Cache holen
 async function get(key) {
   if (!cacheEnabled()) {
     return null;
   }
+
   return client.get(key);
 }
 
-// Wert in den Cache schreiben (optional mit TTL in Sekunden)
 async function set(key, value, ttlSeconds = 60) {
   if (!cacheEnabled()) {
     return;
@@ -62,8 +63,18 @@ function getStatus() {
   return "disconnected";
 }
 
+async function close() {
+  if (!client || !client.isOpen) {
+    return;
+  }
+
+  await client.quit();
+  isReady = false;
+}
+
 module.exports = {
   get,
   set,
   getStatus,
+  close,
 };

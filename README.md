@@ -304,6 +304,7 @@ http://localhost:4000/metrics
 
 MongoDB is treated as a required dependency. Redis is optional and does not make the service unavailable when it is not configured.
 
+The service also handles shutdown signals such as `SIGINT` and `SIGTERM`. On shutdown, the HTTP server stops accepting new requests and open MongoDB and cache connections are closed before the process exits.
 
 ---
 

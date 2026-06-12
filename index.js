@@ -25,6 +25,7 @@ const app = express();
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
+let server = null;
 
 // JSON-Body parsen
 app.use(express.json());
@@ -136,6 +137,45 @@ if (process.env.NODE_ENV !== "test") {
   });
 }
 
+async function shutdown(signal) {
+  logger.info(`${signal} received. Shutting down Reporting Service...`);
+
+  try {
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve();
+        });
+      });
+
+      logger.info("HTTP server closed");
+    }
+
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+      logger.info("MongoDB connection closed");
+    }
+
+    await cacheService.close();
+    logger.info("Cache connection closed if active");
+
+    process.exit(0);
+  } catch (err) {
+    logger.error(`Error during shutdown: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+function registerShutdownHandlers() {
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+}
+
 // Mit MongoDB verbinden und Server starten
 mongoose
   .connect(MONGODB_URI)
@@ -143,9 +183,11 @@ mongoose
     logger.info("✅ Mit MongoDB verbunden (Reporting Service)");
 
     if (process.env.NODE_ENV !== "test") {
-      app.listen(PORT, () => {
+      server = app.listen(PORT, () => {
         logger.info(`Reporting Service läuft auf http://localhost:${PORT}`);
       });
+
+      registerShutdownHandlers();
     }
   })
   .catch((err) => {
