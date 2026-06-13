@@ -3,74 +3,36 @@
 ![Node.js](https://img.shields.io/badge/Node.js-22-green?logo=nodedotjs)
 ![Express](https://img.shields.io/badge/Express-API-black?logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green?logo=mongodb)
+![Redis](https://img.shields.io/badge/Cache-Redis-red?logo=redis)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
-![Jest](https://img.shields.io/badge/Tests-Passing-success?logo=jest)
+![Tests](https://img.shields.io/badge/Tests-Jest%20%2B%20Supertest-success?logo=jest)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue?logo=githubactions)
 ![Swagger](https://img.shields.io/badge/OpenAPI-3.0-brightgreen)
+![Status](https://img.shields.io/badge/Status-Production--Oriented-success)
 
-A production-oriented backend microservice for invoice analytics, reporting, PDF generation and monitoring, built with Node.js, Express, MongoDB, Redis, Docker and Swagger.
+A backend microservice for invoice reporting, revenue analytics, PDF report generation and operational monitoring.
+
+The service is designed as a reporting component that could be part of a larger invoice, ERP or back-office system.
 
 ---
 
-## About the Project
+## Project Goal
 
-Reporting Service API is a standalone microservice responsible for invoice analytics and reporting.
+The goal of this project is to build a realistic backend reporting service instead of a simple demo API.
 
-The service aggregates invoice data stored in MongoDB, provides reporting endpoints, generates PDF reports, exposes monitoring endpoints, supports optional Redis caching and includes Swagger/OpenAPI documentation.
+The service reads invoice data from MongoDB, calculates reporting metrics, exposes protected report endpoints, generates PDF reports and provides operational endpoints for monitoring and production readiness.
 
-The project demonstrates common backend concepts such as:
+The project focuses on backend topics that are relevant in real business systems:
 
-* REST API design
-* API-Key authentication
-* JWT authentication
-* Role-based authorization
+* reporting and analytics logic
 * MongoDB aggregation
+* protected API access
+* role-based report access
+* optional caching
 * PDF generation
-* Health monitoring
-* Automated testing
-* Docker deployment
-
----
-
-## Swagger Documentation
-
-Swagger UI is available after starting the application:
-
-```text
-http://localhost:4000/api-docs
-```
-
-The documentation includes:
-
-* Available endpoints
-* Request descriptions
-* Response information
-* API-Key authentication
-* JWT authentication
-
-### Swagger Preview
-
-Interactive API documentation with API-Key and JWT authentication support.
-
-![Swagger UI](docs/swagger-ui.png)
-
----
-
-## Features
-
-| Feature            | Description                    |
-| ------------------ | ------------------------------ |
-| Invoice Analytics  | Revenue and invoice statistics |
-| Revenue Reports    | Revenue grouped by day         |
-| PDF Export         | Daily report generation as PDF |
-| API-Key Security   | Header-based API protection    |
-| JWT Authentication | Bearer token validation        |
-| Role Authorization | Role-based access control      |
-| Health Endpoint    | Service monitoring             |
-| Metrics Endpoint   | Runtime statistics             |
-| Redis Cache        | Optional response caching      |
-| Docker Support     | Container deployment           |
-| Swagger/OpenAPI    | Interactive API documentation  |
-| Automated Tests    | Jest + Supertest               |
+* operational health and readiness checks
+* Docker-based local infrastructure
+* automated testing and CI validation
 
 ---
 
@@ -81,46 +43,165 @@ Interactive API documentation with API-Key and JWT authentication support.
 * MongoDB
 * Mongoose
 * Redis
-* Docker
-* Swagger / OpenAPI
 * JWT
+* PDFKit
+* Swagger / OpenAPI
+* Docker
+* Docker Compose
 * Jest
 * Supertest
-* PDFKit
+* GitHub Actions
 * node-cron
+* dotenv
+
+---
+
+## Features
+
+Current features:
+
+* Express backend API
+* MongoDB connection using environment variables
+* Startup configuration validation
+* Invoice summary reporting
+* Revenue grouped by day
+* Daily PDF report generation
+* API-Key protection for private endpoints
+* JWT authentication for reporting routes
+* Role-based access control for reports
+* Optional Redis response caching
+* Swagger / OpenAPI documentation
+* Health endpoint
+* Readiness endpoint with dependency status
+* Runtime metrics endpoint
+* Graceful shutdown handling
+* Dockerfile for API container
+* Docker Compose setup with MongoDB and Redis
+* Automated tests with Jest and Supertest
+* GitHub Actions CI workflow
+* Docker image build validation in CI
+
+Planned improvements:
+
+* Further production hardening
+* Structured logging improvements
+* Possible deployment setup
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint                    | Description                |
-| ------ | --------------------------- | -------------------------- |
-| GET    | `/reports/summary`          | Invoice summary statistics |
-| GET    | `/reports/revenue-per-day`  | Revenue grouped by day     |
-| GET    | `/reports/daily-report.pdf` | Generate PDF report        |
-| GET    | `/health`                   | Service health check       |
-| GET    | `/ready`                    | Dependency readiness check |
-| GET    | `/metrics`                  | Runtime metrics            |
+### Reporting
+
+| Method | Endpoint                    | Description                | Protection           |
+| ------ | --------------------------- | -------------------------- | -------------------- |
+| GET    | `/reports/summary`          | Invoice summary statistics | API-Key + JWT + role |
+| GET    | `/reports/revenue-per-day`  | Revenue grouped by day     | API-Key + JWT + role |
+| GET    | `/reports/daily-report.pdf` | Generate PDF report        | API-Key + JWT + role |
+
+Reporting endpoints are limited to users with one of the following roles:
+
+```text
+report_reader
+admin
+```
+
+### Monitoring and Operations
+
+| Method | Endpoint                 | Description                  | Protection |
+| ------ | ------------------------ | ---------------------------- | ---------- |
+| GET    | `/`                      | Basic service response       | Public     |
+| GET    | `/health`                | Service liveness check       | Public     |
+| GET    | `/ready`                 | Dependency readiness check   | Public     |
+| GET    | `/metrics`               | Runtime metrics              | Public     |
+| GET    | `/monitoring/email-test` | Optional Mailtrap test email | API-Key    |
 
 ---
 
-## Authentication
+## Example Responses
 
-Protected reporting endpoints require:
+### Invoice summary
+
+```json
+{
+  "totalInvoices": 12,
+  "totalRevenue": 2450,
+  "openInvoices": 4,
+  "paidInvoices": 7,
+  "cancelledInvoices": 1
+}
+```
+
+### Revenue per day
+
+```json
+[
+  {
+    "date": "2026-06-09",
+    "totalRevenue": 350,
+    "invoiceCount": 2
+  },
+  {
+    "date": "2026-06-10",
+    "totalRevenue": 1200,
+    "invoiceCount": 5
+  }
+]
+```
+
+### Readiness response
+
+```json
+{
+  "status": "ready",
+  "service": "reporting-service-api",
+  "dependencies": {
+    "mongodb": "connected",
+    "redis": "not_configured"
+  },
+  "time": "2026-06-13T10:00:00.000Z"
+}
+```
+
+### Metrics response
+
+```json
+{
+  "service": "reporting-service-api",
+  "uptimeSeconds": 120,
+  "rss": 81264640,
+  "heapTotal": 28966912,
+  "heapUsed": 18432000,
+  "external": 2048000,
+  "nodeEnv": "development"
+}
+```
+
+---
+
+## Authentication and Authorization
+
+Protected reporting endpoints require two layers of access control.
 
 ### API Key
+
+Private endpoints require an API key in the request header:
 
 ```http
 x-api-key: your_api_key_here
 ```
 
-### JWT
+### JWT Bearer Token
+
+Reporting routes also require a valid JWT:
 
 ```http
 Authorization: Bearer <jwt-token>
 ```
 
-Swagger supports both authentication methods through the **Authorize** button.
+The service validates JWT tokens and checks the user role before allowing access to reporting endpoints.
+
+Token issuing is intentionally outside the scope of this service. In a larger system, this reporting service would typically validate tokens issued by an authentication service.
 
 ---
 
@@ -128,24 +209,73 @@ Swagger supports both authentication methods through the **Authorize** button.
 
 ```text
 reporting-service-api/
-├── controllers/
-├── middleware/
-├── models/
-├── routes/
-├── services/
-├── swagger/
-├── tests/
-├── utils/
-├── config/env.js
-├── index.js
-├── Dockerfile
-├── docker-compose.yml
-├── .dockerignore
-├── .github/workflows/ci.yml
-├── package.json
-├── .env.example
-└── README.md
+|
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|
+|-- config/
+|   `-- env.js
+|
+|-- controllers/
+|-- middleware/
+|-- models/
+|-- routes/
+|-- services/
+|-- swagger/
+|-- tests/
+|-- utils/
+|
+|-- docs/
+|   `-- swagger-ui.png
+|
+|-- index.js
+|-- Dockerfile
+|-- docker-compose.yml
+|-- .dockerignore
+|-- .env.example
+|-- package.json
+|-- package-lock.json
+`-- README.md
 ```
+
+---
+
+## Architecture Overview
+
+The project follows a compact backend service structure.
+
+```text
+Client
+  |
+  v
+Express API
+  |
+  v
+API-Key Middleware
+  |
+  v
+JWT Authentication
+  |
+  v
+Role Authorization
+  |
+  v
+Report Routes
+  |
+  v
+Report Controller
+  |
+  +--> Optional Redis Cache
+  |
+  +--> MongoDB Aggregation
+  |
+  +--> PDF Generation
+```
+
+Monitoring endpoints such as `/health`, `/ready` and `/metrics` are separated from protected reporting routes so that local tools, containers or deployment environments can check the service state.
+
+MongoDB is the required data source for reports. Redis is used only as an optional cache layer.
 
 ---
 
@@ -163,37 +293,121 @@ JWT_SECRET=your_jwt_secret_here
 REDIS_URL=
 ```
 
+Required variables:
+
+| Variable      | Description                      |
+| ------------- | -------------------------------- |
+| `MONGODB_URI` | MongoDB connection string        |
+| `API_KEY`     | API key for protected API access |
+| `JWT_SECRET`  | Secret used to verify JWT tokens |
+
+Optional variables:
+
+| Variable    | Description                             |
+| ----------- | --------------------------------------- |
+| `PORT`      | API port, defaults to `4000`            |
+| `REDIS_URL` | Redis connection URL for optional cache |
+
 If Redis is not installed locally, leave `REDIS_URL` empty.
 
 The service validates required environment variables during startup and stops with a clear error message if a required value is missing.
 
+The `.env` file is ignored by Git and should not be committed.
+
 ---
 
-## Installation
+## Getting Started
+
+Install dependencies:
 
 ```bash
-git clone https://github.com/tabari86/reporting-service-api.git
-cd reporting-service-api
 npm install
+```
+
+Start the application:
+
+```bash
+npm start
+```
+
+The API will be available at:
+
+```text
+http://localhost:4000
+```
+
+Swagger UI will be available at:
+
+```text
+http://localhost:4000/api-docs
 ```
 
 ---
 
-## Start Application
+## Run with Docker
+
+Build the Docker image:
 
 ```bash
-npm start
+docker build -t reporting-service-api .
+```
+
+Run the container manually:
+
+```bash
+docker run -p 4000:4000 reporting-service-api
+```
+
+For manual container runs, MongoDB and optional Redis must already be available and configured through environment variables.
+
+### Docker Compose
+
+Docker Compose starts the API together with MongoDB and Redis:
+
+```bash
+docker compose up --build
+```
+
+The local Compose setup includes:
+
+* API service on port `4000`
+* MongoDB on port `27017`
+* Redis on port `6379`
+* MongoDB volume for persistent local data
+* Health checks for MongoDB and Redis before starting the API
+
+Stop the local stack:
+
+```bash
+docker compose down
+```
+
+Stop the stack and remove the MongoDB volume:
+
+```bash
+docker compose down -v
 ```
 
 ---
 
 ## Run Tests
 
+Run the automated test suite:
+
 ```bash
 npm test
 ```
 
-All current Jest test suites pass successfully.
+The tests cover:
+
+* API-Key middleware behavior
+* JWT authentication checks
+* Role-based access checks
+* Invoice summary aggregation
+* Revenue grouped by day
+* PDF report generation
+* Monitoring endpoints
+* Readiness endpoint behavior
 
 ---
 
@@ -212,7 +426,7 @@ The workflow performs the following checks:
 
 Redis is not required during CI test execution because caching is disabled in the test environment.
 
-The workflow file is located at:
+Workflow file:
 
 ```text
 .github/workflows/ci.yml
@@ -220,107 +434,188 @@ The workflow file is located at:
 
 ---
 
-## Docker
+## Monitoring and Production Readiness
 
-The application can be run either as a standalone Docker container or as a complete local development stack with Docker Compose.
-
-### Build Docker Image
-
-```bash
-docker build -t reporting-service-api .
-```
-
-### Run Container Manually
-
-```bash
-docker run -p 4000:4000 reporting-service-api
-```
-
-For manual container runs, MongoDB and optional Redis must already be available and configured through environment variables.
-
-### Run with Docker Compose
-
-Docker Compose starts the API together with MongoDB and Redis:
-
-```bash
-docker compose up --build
-```
-
-The local Compose setup includes:
-
-* API service on port `4000`
-* MongoDB on port `27017`
-* Redis on port `6379`
-* MongoDB volume for persistent local data
-* Health checks for MongoDB and Redis before starting the API
-
-After startup, the service is available at:
-
-```text
-http://localhost:4000
-```
-
-Swagger UI is available at:
-
-```text
-http://localhost:4000/api-docs
-```
-
-To stop the local stack:
-
-```bash
-docker compose down
-```
-
-To stop the stack and remove the MongoDB volume:
-
-```bash
-docker compose down -v
-```
-
-
----
-
-## Monitoring
-
-Health endpoint:
+### Health check
 
 ```text
 http://localhost:4000/health
 ```
 
-Readiness endpoint:
+`/health` checks whether the API process is running.
+
+### Readiness check
 
 ```text
 http://localhost:4000/ready
 ```
 
-Metrics endpoint:
+`/ready` checks whether the service is ready to handle requests by reporting the status of required and optional dependencies.
+
+MongoDB is treated as a required dependency. If MongoDB is not connected, the readiness endpoint returns `503`.
+
+Redis is optional. If Redis is not configured or temporarily unavailable, the service can still serve reports by reading from MongoDB.
+
+### Runtime metrics
 
 ```text
 http://localhost:4000/metrics
 ```
 
-`/health` checks whether the API process is running.
+`/metrics` exposes basic runtime information such as uptime and memory usage.
 
-`/ready` checks whether the service is ready to handle requests by reporting the status of required and optional dependencies.
+### Graceful shutdown
 
-MongoDB is treated as a required dependency. Redis is optional and does not make the service unavailable when it is not configured.
+The service handles shutdown signals such as `SIGINT` and `SIGTERM`.
 
-The service also handles shutdown signals such as `SIGINT` and `SIGTERM`. On shutdown, the HTTP server stops accepting new requests and open MongoDB and cache connections are closed before the process exits.
+On shutdown, the HTTP server stops accepting new requests and open MongoDB and cache connections are closed before the process exits.
 
 ---
 
-## Security Notes
+## Swagger Documentation
 
-The following files are ignored by Git:
+Swagger UI is available after starting the application:
 
 ```text
-.env
-.env.test
+http://localhost:4000/api-docs
 ```
 
-Only `.env.example` is committed to the repository.
+The documentation includes:
+
+* available reporting endpoints
+* request descriptions
+* response information
+* API-Key authentication
+* JWT Bearer authentication
+
+### Swagger UI Preview
+
+![Swagger UI](docs/swagger-ui.png)
+
+---
+
+## Business Rules
+
+Current reporting rules:
+
+* Reporting endpoints require a valid API key.
+* Reporting endpoints require a valid JWT.
+* Only `report_reader` and `admin` roles can access report data.
+* Invoice summary values are calculated from invoice data stored in MongoDB.
+* Revenue-per-day reports group invoice revenue by invoice creation date.
+* PDF reports are generated from current reporting data.
+* Report responses may be cached when Redis is configured.
+* Redis is optional and must not make the service unavailable when it is not configured.
+* MongoDB is required because it is the main reporting data source.
+* Missing required environment variables stop the service during startup.
+* Readiness depends on MongoDB, not on Redis.
+* Health checks and readiness checks are public operational endpoints.
+
+---
+
+## Reporting Design Principles
+
+The project separates operational concerns from reporting concerns.
+
+Reporting endpoints focus on business data such as invoice totals, revenue grouped by day and PDF report generation.
+
+Operational endpoints focus on runtime behavior such as process health, dependency readiness and metrics.
+
+The service treats MongoDB as the source of truth for reporting data. Redis is used only as an optional cache to reduce repeated aggregation work.
+
+This keeps the service understandable while still showing how a backend reporting component can be prepared for production-like environments.
+
+---
+
+## Current Status
+
+Implemented:
+
+* Reporting API endpoints
+* MongoDB aggregation for invoice analytics
+* PDF report generation
+* API-Key protection
+* JWT authentication
+* Role-based authorization
+* Optional Redis cache
+* Swagger / OpenAPI documentation
+* Health endpoint
+* Readiness endpoint
+* Runtime metrics endpoint
+* Graceful shutdown handling
+* Startup configuration validation
+* Dockerfile
+* Docker Compose setup with MongoDB and Redis
+* Automated API tests
+* GitHub Actions CI workflow
+* Docker build validation in CI
+
+Current focus:
+
+* Final project documentation and portfolio presentation
+
+Planned improvements:
+
+* Further production hardening
+* Structured logging improvements
+* Possible deployment setup
+
+---
+
+## Roadmap
+
+Completed:
+
+1. Basic Express API setup
+2. MongoDB integration
+3. Invoice summary reporting
+4. Revenue-per-day reporting
+5. PDF report generation
+6. API-Key protection
+7. JWT authentication
+8. Role-based report access
+9. Optional Redis caching
+10. Swagger / OpenAPI documentation
+11. Automated API tests
+12. Docker support
+13. Docker Compose setup
+14. GitHub Actions CI workflow
+15. Readiness endpoint
+16. Graceful shutdown handling
+17. Startup configuration validation
+
+Next possible milestones:
+
+18. Structured logging improvements
+19. Centralized error handling
+20. Deployment preparation
+
+---
+
+## Why this project matters
+
+Reporting services are common in real business systems.
+
+Companies often need backend services that can read invoice or order data, calculate revenue metrics, generate reports and expose operational status for deployment environments.
+
+This project demonstrates backend skills that are relevant for roles such as:
+
+* Backend Developer
+* API Developer
+* Integration Developer
+* Software Developer
+
+The project is focused on backend service design, reporting logic and production-oriented operational behavior instead of frontend design.
+
+---
+
+## Design Philosophy
+
+This project follows a service-oriented backend approach.
+
+The reporting service does not try to model a complete ERP system. Instead, it focuses on one realistic responsibility: reading invoice data and providing reporting output through a protected backend API.
+
+The design keeps the service small enough to understand, but complete enough to demonstrate practical backend concerns such as authentication, authorization, aggregation, caching, monitoring, Docker, CI and startup validation.
 
 ---
 
@@ -328,13 +623,11 @@ Only `.env.example` is committed to the repository.
 
 Moj Tabari
 
-Website : 
-https://mtintelligence.ai
+* Website: https://mtintelligence.ai
+* LinkedIn: https://www.linkedin.com/in/moj-tabari-04a400227/
 
+---
 
-LinkedIn : 
-https://www.linkedin.com/in/moj-tabari-04a400227/
+## License
 
-
-
-
+This project is developed as a production-oriented backend API project for portfolio and professional demonstration purposes.
