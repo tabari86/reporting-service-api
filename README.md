@@ -136,6 +136,7 @@ reporting-service-api/
 ├── swagger/
 ├── tests/
 ├── utils/
+├── config/env.js
 ├── index.js
 ├── Dockerfile
 ├── docker-compose.yml
@@ -163,6 +164,8 @@ REDIS_URL=
 ```
 
 If Redis is not installed locally, leave `REDIS_URL` empty.
+
+The service validates required environment variables during startup and stops with a clear error message if a required value is missing.
 
 ---
 

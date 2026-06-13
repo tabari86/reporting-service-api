@@ -11,6 +11,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cron = require("node-cron");
 const logger = require("./utils/logger");
+const { getConfig } = require("./config/env");
 const requestLogger = require("./middleware/requestLogger");
 const reportRoutes = require("./routes/reportRoutes");
 const reportController = require("./controllers/reportController");
@@ -23,8 +24,17 @@ const cacheService = require("./services/cacheService");
 
 const app = express();
 
-const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI;
+let config;
+
+try {
+  config = getConfig();
+} catch (err) {
+  logger.error(err.message);
+  process.exit(1);
+}
+
+const PORT = config.port;
+const MONGODB_URI = config.mongodbUri;
 let server = null;
 
 // JSON-Body parsen
