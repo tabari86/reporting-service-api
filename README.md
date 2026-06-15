@@ -9,6 +9,7 @@
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue?logo=githubactions)
 ![Swagger](https://img.shields.io/badge/OpenAPI-3.0-brightgreen)
 ![Status](https://img.shields.io/badge/Status-Production--Oriented-success)
+![Deployment](https://img.shields.io/badge/Deployment-Render-purple)
 
 A backend microservice for invoice reporting, revenue analytics, PDF report generation and operational monitoring.
 
@@ -53,6 +54,8 @@ The project focuses on backend topics that are relevant in real business systems
 * GitHub Actions
 * node-cron
 * dotenv
+* Render
+* MongoDB Atlas
 
 ---
 
@@ -80,12 +83,15 @@ Current features:
 * Automated tests with Jest and Supertest
 * GitHub Actions CI workflow
 * Docker image build validation in CI
+* Live deployment on Render
+* MongoDB Atlas production database connection
+
 
 Planned improvements:
 
 * Further production hardening
 * Structured logging improvements
-* Possible deployment setup
+
 
 ---
 
@@ -491,6 +497,23 @@ The documentation includes:
 ### Swagger UI Preview
 
 ![Swagger UI](docs/swagger-ui.png)
+
+---
+
+
+## Live Deployment
+
+The API is deployed on Render and connected to MongoDB Atlas.
+
+```text
+https://reporting-service-api.onrender.com
+```
+
+Swagger UI is available at:
+```text
+https://reporting-service-api.onrender.com/api-docs
+```
+Note: The service runs on Render's free plan, so the first request after inactivity may take a few seconds.
 
 ---
 
