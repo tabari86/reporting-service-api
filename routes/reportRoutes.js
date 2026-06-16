@@ -68,6 +68,26 @@ router.get("/summary-by-range", reportController.getSummaryByRange);
 
 /**
  * @swagger
+ * /reports/status-breakdown:
+ *   get:
+ *     summary: Get invoice status breakdown
+ *     description: Returns invoice counts, amounts and percentages grouped by invoice status.
+ *     tags: [Reports]
+ *     security:
+ *       - ApiKeyAuth: []
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Status breakdown returned successfully
+ *       401:
+ *         description: Missing or invalid authentication
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/status-breakdown", reportController.getStatusBreakdown);
+
+/**
+ * @swagger
  * /reports/revenue-per-day:
  *   get:
  *     summary: Get revenue per day

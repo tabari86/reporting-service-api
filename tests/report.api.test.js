@@ -105,7 +105,133 @@ describe("Reporting Service API", () => {
     });
   });
 
-    describe("Summary by range", () => {
+  describe("Status breakdown", () => {
+    it("GET /reports/status-breakdown returns count, amount and percentage by status", async () => {
+      await Invoice.create([
+        {
+          customerName: "Open Invoice",
+          amount: 100,
+          status: "OPEN",
+        },
+        {
+          customerName: "Paid Invoice One",
+          amount: 200,
+          status: "PAID",
+        },
+        {
+          customerName: "Paid Invoice Two",
+          amount: 300,
+          status: "PAID",
+        },
+        {
+          customerName: "Cancelled Invoice",
+          amount: 50,
+          status: "CANCELLED",
+        },
+      ]);
+
+      const res = await request(app)
+        .get("/reports/status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 4,
+        statuses: [
+          {
+            status: "OPEN",
+            count: 1,
+            totalAmount: 100,
+            percentage: 25,
+          },
+          {
+            status: "PAID",
+            count: 2,
+            totalAmount: 500,
+            percentage: 50,
+          },
+          {
+            status: "CANCELLED",
+            count: 1,
+            totalAmount: 50,
+            percentage: 25,
+          },
+        ],
+      });
+    });
+
+    it("GET /reports/status-breakdown returns zero values for missing statuses", async () => {
+      await Invoice.create([
+        {
+          customerName: "Paid Invoice",
+          amount: 250,
+          status: "PAID",
+        },
+      ]);
+
+      const res = await request(app)
+        .get("/reports/status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 1,
+        statuses: [
+          {
+            status: "OPEN",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            status: "PAID",
+            count: 1,
+            totalAmount: 250,
+            percentage: 100,
+          },
+          {
+            status: "CANCELLED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+        ],
+      });
+    });
+
+    it("GET /reports/status-breakdown returns zero breakdown when no invoices exist", async () => {
+      const res = await request(app)
+        .get("/reports/status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 0,
+        statuses: [
+          {
+            status: "OPEN",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            status: "PAID",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            status: "CANCELLED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+        ],
+      });
+    });
+  });
+
+  describe("Summary by range", () => {
     it("GET /reports/summary-by-range returns summary for invoices inside the date range", async () => {
       await Invoice.create([
         {

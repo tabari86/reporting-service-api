@@ -67,6 +67,8 @@ Current features:
 * MongoDB connection using environment variables
 * Startup configuration validation
 * Invoice summary reporting
+* Date range summary reporting
+* Invoice status breakdown reporting
 * Revenue grouped by day
 * Daily PDF report generation
 * API-Key protection for private endpoints
@@ -99,12 +101,13 @@ Planned improvements:
 
 ### Reporting
 
-| Method | Endpoint                                                  | Description                               | Protection           |
-| ------ | --------------------------------------------------------- | ----------------------------------------- | -------------------- |
-| GET    | `/reports/summary`                                        | Invoice summary statistics                | API-Key + JWT + role |
-| GET    | `/reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD` | Invoice summary for a specific date range | API-Key + JWT + role |
-| GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                    | API-Key + JWT + role |
-| GET    | `/reports/daily-report.pdf`                               | Generate PDF report                       | API-Key + JWT + role |
+| Method | Endpoint                                                  | Description                                              | Protection           |
+| ------ | --------------------------------------------------------- | -------------------------------------------------------- | -------------------- |
+| GET    | `/reports/summary`                                        | Invoice summary statistics                               | API-Key + JWT + role |
+| GET    | `/reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD` | Invoice summary for a specific date range                | API-Key + JWT + role |
+| GET    | `/reports/status-breakdown`                               | Invoice status breakdown by count, amount and percentage | API-Key + JWT + role |
+| GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                                   | API-Key + JWT + role |
+| GET    | `/reports/daily-report.pdf`                               | Generate PDF report                                      | API-Key + JWT + role |
 
 Reporting endpoints are limited to users with one of the following roles:
 
@@ -150,6 +153,34 @@ admin
   "openInvoices": 3,
   "paidInvoices": 4,
   "cancelledInvoices": 1
+}
+```
+
+### Invoice status breakdown
+
+```json
+{
+  "totalInvoices": 12,
+  "statuses": [
+    {
+      "status": "OPEN",
+      "count": 4,
+      "totalAmount": 850,
+      "percentage": 33.33
+    },
+    {
+      "status": "PAID",
+      "count": 7,
+      "totalAmount": 1500,
+      "percentage": 58.33
+    },
+    {
+      "status": "CANCELLED",
+      "count": 1,
+      "totalAmount": 100,
+      "percentage": 8.33
+    }
+  ]
 }
 ```
 
@@ -425,6 +456,8 @@ The tests cover:
 * JWT authentication checks
 * Role-based access checks
 * Invoice summary aggregation
+* Date range summary reporting
+* Invoice status breakdown reporting
 * Revenue grouped by day
 * PDF report generation
 * Monitoring endpoints
@@ -541,6 +574,8 @@ Current reporting rules:
 * Reporting endpoints require a valid JWT.
 * Only `report_reader` and `admin` roles can access report data.
 * Invoice summary values are calculated from invoice data stored in MongoDB.
+* Status breakdown reports group invoices by invoice status.
+* Status breakdown reports use the invoice statuses `OPEN`, `PAID` and `CANCELLED`.
 * Revenue-per-day reports group invoice revenue by invoice creation date.
 * PDF reports are generated from current reporting data.
 * Report responses may be cached when Redis is configured.
@@ -551,6 +586,7 @@ Current reporting rules:
 * Health checks and readiness checks are public operational endpoints.
 * Date range summaries only include invoices created within the requested date range.
 * Date range requests require `from` and `to` query parameters in `YYYY-MM-DD` format.
+
 
 ---
 
@@ -574,6 +610,7 @@ Implemented:
 
 * Reporting API endpoints
 * Date range summary reporting
+* Invoice status breakdown reporting
 * MongoDB aggregation for invoice analytics
 * PDF report generation
 * API-Key protection
@@ -594,6 +631,7 @@ Implemented:
 * Live deployment on Render
 * MongoDB Atlas production database connection
 
+
 Current focus:
 
 * Portfolio presentation and final review
@@ -604,7 +642,6 @@ Planned improvements:
 * Centralized error handling
 * Further production hardening
 
-
 ---
 
 ## Roadmap
@@ -614,29 +651,30 @@ Completed:
 1. Basic Express API setup
 2. MongoDB integration
 3. Invoice summary reporting
-4. Revenue-per-day reporting
-5. Date range summary reporting
-6. PDF report generation
-7. API-Key protection
-8. JWT authentication
-9. Role-based report access
-10. Optional Redis caching
-11. Swagger / OpenAPI documentation
-12. Automated API tests
-13. Docker support
-14. Docker Compose setup
-15. GitHub Actions CI workflow
-16. Readiness endpoint
-17. Graceful shutdown handling
-18. Startup configuration validation
-19. Render deployment
-20. MongoDB Atlas production database connection
+4. Date range summary reporting
+5. Invoice status breakdown reporting
+6. Revenue-per-day reporting
+7. PDF report generation
+8. API-Key protection
+9. JWT authentication
+10. Role-based report access
+11. Optional Redis caching
+12. Swagger / OpenAPI documentation
+13. Automated API tests
+14. Docker support
+15. Docker Compose setup
+16. GitHub Actions CI workflow
+17. Readiness endpoint
+18. Graceful shutdown handling
+19. Startup configuration validation
+20. Render deployment
+21. MongoDB Atlas production database connection
 
 Next possible milestones:
 
-21. Structured logging improvements
-22. Centralized error handling
-23. Further production hardening
+22. Structured logging improvements
+23. Centralized error handling
+24. Further production hardening
 
 
 ---

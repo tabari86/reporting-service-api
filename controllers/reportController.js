@@ -2,7 +2,7 @@ const Invoice = require("../models/invoice");
 const DailyReport = require("../models/dailyReport");
 const { generateDailyReportPdf } = require("../services/pdfService");
 const cacheService = require("../services/cacheService");
-
+const INVOICE_STATUSES = ["OPEN", "PAID", "CANCELLED"];
 
 // Aggregation für Summary 
 
@@ -115,6 +115,52 @@ async function calculateSummaryByRange(fromDate, toDateExclusive) {
     openInvoices: summary.openInvoices || 0,
     paidInvoices: summary.paidInvoices || 0,
     cancelledInvoices: summary.cancelledInvoices || 0,
+  };
+}
+
+async function calculateStatusBreakdown() {
+  const result = await Invoice.aggregate([
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const statusMap = new Map(
+    result.map((row) => [
+      row._id,
+      {
+        count: row.count || 0,
+        totalAmount: row.totalAmount || 0,
+      },
+    ])
+  );
+
+  const totalInvoices = result.reduce((sum, row) => sum + (row.count || 0), 0);
+
+  const statuses = INVOICE_STATUSES.map((status) => {
+    const current = statusMap.get(status) || {
+      count: 0,
+      totalAmount: 0,
+    };
+
+    return {
+      status,
+      count: current.count,
+      totalAmount: current.totalAmount,
+      percentage:
+        totalInvoices === 0
+          ? 0
+          : Number(((current.count / totalInvoices) * 100).toFixed(2)),
+    };
+  });
+
+  return {
+    totalInvoices,
+    statuses,
   };
 }
 
@@ -245,6 +291,16 @@ exports.getSummaryByRange = async (req, res) => {
   }
 };
 
+exports.getStatusBreakdown = async (req, res) => {
+  try {
+    const breakdown = await calculateStatusBreakdown();
+
+    res.json(breakdown);
+  } catch (err) {
+    console.error("Fehler bei getStatusBreakdown:", err);
+    res.status(500).json({ message: "Interner Serverfehler" });
+  }
+};
 
 // Optionaler Export, falls Summary an anderen Stellen genutzt wird
 exports.calculateSummary = calculateSummary;
