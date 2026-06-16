@@ -3,9 +3,9 @@ const DailyReport = require("../models/dailyReport");
 const { generateDailyReportPdf } = require("../services/pdfService");
 const cacheService = require("../services/cacheService");
 
-// --------------------------------------
-// Aggregation für Summary (Hilfsfunktion)
-// --------------------------------------
+
+// Aggregation für Summary 
+
 async function calculateSummary() {
   const result = await Invoice.aggregate([
     {
@@ -53,9 +53,73 @@ async function calculateSummary() {
   };
 }
 
-// --------------------------------------
+function isValidDateString(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+async function calculateSummaryByRange(fromDate, toDateExclusive) {
+  const result = await Invoice.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: fromDate,
+          $lt: toDateExclusive,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalInvoices: { $sum: 1 },
+        totalRevenue: { $sum: "$amount" },
+        openInvoices: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "OPEN"] }, 1, 0],
+          },
+        },
+        paidInvoices: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "PAID"] }, 1, 0],
+          },
+        },
+        cancelledInvoices: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "CANCELLED"] }, 1, 0],
+          },
+        },
+      },
+    },
+  ]);
+
+  if (result.length === 0) {
+    return {
+      totalInvoices: 0,
+      totalRevenue: 0,
+      openInvoices: 0,
+      paidInvoices: 0,
+      cancelledInvoices: 0,
+    };
+  }
+
+  const summary = result[0];
+
+  return {
+    totalInvoices: summary.totalInvoices || 0,
+    totalRevenue: summary.totalRevenue || 0,
+    openInvoices: summary.openInvoices || 0,
+    paidInvoices: summary.paidInvoices || 0,
+    cancelledInvoices: summary.cancelledInvoices || 0,
+  };
+}
+
 // GET /reports/summary (mit Redis-Cache)
-// --------------------------------------
+
 exports.getSummary = async (req, res) => {
   const cacheKey = "reports:summary";
 
@@ -144,6 +208,43 @@ exports.getRevenuePerDay = async (req, res) => {
     res.status(500).json({ message: "Interner Serverfehler" });
   }
 };
+
+// GET /reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD
+exports.getSummaryByRange = async (req, res) => {
+  const { from, to } = req.query;
+
+  if (!isValidDateString(from) || !isValidDateString(to)) {
+    return res.status(400).json({
+      message: "from and to must be provided in YYYY-MM-DD format",
+    });
+  }
+
+  const fromDate = new Date(`${from}T00:00:00.000Z`);
+  const toDate = new Date(`${to}T00:00:00.000Z`);
+
+  if (fromDate > toDate) {
+    return res.status(400).json({
+      message: "from must be before or equal to to",
+    });
+  }
+
+  const toDateExclusive = new Date(toDate);
+  toDateExclusive.setUTCDate(toDateExclusive.getUTCDate() + 1);
+
+  try {
+    const summary = await calculateSummaryByRange(fromDate, toDateExclusive);
+
+    res.json({
+      from,
+      to,
+      ...summary,
+    });
+  } catch (err) {
+    console.error("Fehler bei getSummaryByRange:", err);
+    res.status(500).json({ message: "Interner Serverfehler" });
+  }
+};
+
 
 // Optionaler Export, falls Summary an anderen Stellen genutzt wird
 exports.calculateSummary = calculateSummary;

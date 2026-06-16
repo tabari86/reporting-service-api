@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const reportController = require("../controllers/reportController");
-
 /**
  * @swagger
  * tags:
@@ -32,6 +31,43 @@ router.get("/summary", reportController.getSummary);
 
 /**
  * @swagger
+ * /reports/summary-by-range:
+ *   get:
+ *     summary: Get invoice summary by date range
+ *     description: Returns invoice summary statistics for a specific date range.
+ *     tags: [Reports]
+ *     security:
+ *       - ApiKeyAuth: []
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2026-06-01
+ *         description: Start date in YYYY-MM-DD format.
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2026-06-30
+ *         description: End date in YYYY-MM-DD format.
+ *     responses:
+ *       200:
+ *         description: Date range summary returned successfully
+ *       400:
+ *         description: Missing or invalid date range
+ *       401:
+ *         description: Missing or invalid authentication
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/summary-by-range", reportController.getSummaryByRange);
+
+/**
+ * @swagger
  * /reports/revenue-per-day:
  *   get:
  *     summary: Get revenue per day
@@ -48,6 +84,7 @@ router.get("/summary", reportController.getSummary);
  *       500:
  *         description: Internal server error
  */
+
 router.get("/revenue-per-day", reportController.getRevenuePerDay);
 
 /**

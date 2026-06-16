@@ -105,6 +105,94 @@ describe("Reporting Service API", () => {
     });
   });
 
+    describe("Summary by range", () => {
+    it("GET /reports/summary-by-range returns summary for invoices inside the date range", async () => {
+      await Invoice.create([
+        {
+          customerName: "Inside Range Open",
+          amount: 100,
+          status: "OPEN",
+          createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        },
+        {
+          customerName: "Inside Range Paid",
+          amount: 200,
+          status: "PAID",
+          createdAt: new Date("2026-06-11T10:00:00.000Z"),
+        },
+        {
+          customerName: "Outside Range",
+          amount: 500,
+          status: "CANCELLED",
+          createdAt: new Date("2026-06-20T10:00:00.000Z"),
+        },
+      ]);
+
+      const res = await request(app)
+        .get("/reports/summary-by-range?from=2026-06-10&to=2026-06-11")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        from: "2026-06-10",
+        to: "2026-06-11",
+        totalInvoices: 2,
+        totalRevenue: 300,
+        openInvoices: 1,
+        paidInvoices: 1,
+        cancelledInvoices: 0,
+      });
+    });
+
+    it("GET /reports/summary-by-range returns zero values when no invoices match", async () => {
+      await Invoice.create([
+        {
+          customerName: "Outside Range",
+          amount: 150,
+          status: "PAID",
+          createdAt: new Date("2026-05-01T10:00:00.000Z"),
+        },
+      ]);
+
+      const res = await request(app)
+        .get("/reports/summary-by-range?from=2026-06-01&to=2026-06-30")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        from: "2026-06-01",
+        to: "2026-06-30",
+        totalInvoices: 0,
+        totalRevenue: 0,
+        openInvoices: 0,
+        paidInvoices: 0,
+        cancelledInvoices: 0,
+      });
+    });
+
+    it("GET /reports/summary-by-range rejects missing date parameters", async () => {
+      const res = await request(app)
+        .get("/reports/summary-by-range?from=2026-06-01")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: "from and to must be provided in YYYY-MM-DD format",
+      });
+    });
+
+    it("GET /reports/summary-by-range rejects invalid date ranges", async () => {
+      const res = await request(app)
+        .get("/reports/summary-by-range?from=2026-06-30&to=2026-06-01")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: "from must be before or equal to to",
+      });
+    });
+  });
+
   describe("Revenue per day", () => {
     it("GET /reports/revenue-per-day returns an empty array when no invoices exist", async () => {
       const res = await request(app)

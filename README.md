@@ -99,11 +99,12 @@ Planned improvements:
 
 ### Reporting
 
-| Method | Endpoint                    | Description                | Protection           |
-| ------ | --------------------------- | -------------------------- | -------------------- |
-| GET    | `/reports/summary`          | Invoice summary statistics | API-Key + JWT + role |
-| GET    | `/reports/revenue-per-day`  | Revenue grouped by day     | API-Key + JWT + role |
-| GET    | `/reports/daily-report.pdf` | Generate PDF report        | API-Key + JWT + role |
+| Method | Endpoint                                                  | Description                               | Protection           |
+| ------ | --------------------------------------------------------- | ----------------------------------------- | -------------------- |
+| GET    | `/reports/summary`                                        | Invoice summary statistics                | API-Key + JWT + role |
+| GET    | `/reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD` | Invoice summary for a specific date range | API-Key + JWT + role |
+| GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                    | API-Key + JWT + role |
+| GET    | `/reports/daily-report.pdf`                               | Generate PDF report                       | API-Key + JWT + role |
 
 Reporting endpoints are limited to users with one of the following roles:
 
@@ -134,6 +135,20 @@ admin
   "totalRevenue": 2450,
   "openInvoices": 4,
   "paidInvoices": 7,
+  "cancelledInvoices": 1
+}
+```
+
+### Invoice summary by date range
+
+```json
+{
+  "from": "2026-06-01",
+  "to": "2026-06-30",
+  "totalInvoices": 8,
+  "totalRevenue": 1800,
+  "openInvoices": 3,
+  "paidInvoices": 4,
   "cancelledInvoices": 1
 }
 ```
@@ -513,6 +528,7 @@ Swagger UI is available at:
 ```text
 https://reporting-service-api.onrender.com/api-docs
 ```
+
 Note: The service runs on Render's free plan, so the first request after inactivity may take a few seconds.
 
 ---
@@ -533,6 +549,8 @@ Current reporting rules:
 * Missing required environment variables stop the service during startup.
 * Readiness depends on MongoDB, not on Redis.
 * Health checks and readiness checks are public operational endpoints.
+* Date range summaries only include invoices created within the requested date range.
+* Date range requests require `from` and `to` query parameters in `YYYY-MM-DD` format.
 
 ---
 
@@ -555,6 +573,7 @@ This keeps the service understandable while still showing how a backend reportin
 Implemented:
 
 * Reporting API endpoints
+* Date range summary reporting
 * MongoDB aggregation for invoice analytics
 * PDF report generation
 * API-Key protection
@@ -572,16 +591,19 @@ Implemented:
 * Automated API tests
 * GitHub Actions CI workflow
 * Docker build validation in CI
+* Live deployment on Render
+* MongoDB Atlas production database connection
 
 Current focus:
 
-* Final project documentation and portfolio presentation
+* Portfolio presentation and final review
 
 Planned improvements:
 
-* Further production hardening
 * Structured logging improvements
-* Possible deployment setup
+* Centralized error handling
+* Further production hardening
+
 
 ---
 
@@ -593,25 +615,29 @@ Completed:
 2. MongoDB integration
 3. Invoice summary reporting
 4. Revenue-per-day reporting
-5. PDF report generation
-6. API-Key protection
-7. JWT authentication
-8. Role-based report access
-9. Optional Redis caching
-10. Swagger / OpenAPI documentation
-11. Automated API tests
-12. Docker support
-13. Docker Compose setup
-14. GitHub Actions CI workflow
-15. Readiness endpoint
-16. Graceful shutdown handling
-17. Startup configuration validation
+5. Date range summary reporting
+6. PDF report generation
+7. API-Key protection
+8. JWT authentication
+9. Role-based report access
+10. Optional Redis caching
+11. Swagger / OpenAPI documentation
+12. Automated API tests
+13. Docker support
+14. Docker Compose setup
+15. GitHub Actions CI workflow
+16. Readiness endpoint
+17. Graceful shutdown handling
+18. Startup configuration validation
+19. Render deployment
+20. MongoDB Atlas production database connection
 
 Next possible milestones:
 
-18. Structured logging improvements
-19. Centralized error handling
-20. Deployment preparation
+21. Structured logging improvements
+22. Centralized error handling
+23. Further production hardening
+
 
 ---
 
