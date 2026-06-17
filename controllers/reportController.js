@@ -3,7 +3,7 @@ const DailyReport = require("../models/dailyReport");
 const { generateDailyReportPdf } = require("../services/pdfService");
 const cacheService = require("../services/cacheService");
 const INVOICE_STATUSES = ["OPEN", "PAID", "CANCELLED"];
-
+const SHIPPING_STATUSES = ["NOT_SHIPPED", "SHIPPED", "IN_TRANSIT", "DELIVERED"];
 // Aggregation für Summary 
 
 async function calculateSummary() {
@@ -164,6 +164,52 @@ async function calculateStatusBreakdown() {
   };
 }
 
+async function calculateShippingStatusBreakdown() {
+  const result = await Invoice.aggregate([
+    {
+      $group: {
+        _id: { $ifNull: ["$shippingStatus", "NOT_SHIPPED"] },
+        count: { $sum: 1 },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const statusMap = new Map(
+    result.map((row) => [
+      row._id,
+      {
+        count: row.count || 0,
+        totalAmount: row.totalAmount || 0,
+      },
+    ])
+  );
+
+  const totalInvoices = result.reduce((sum, row) => sum + (row.count || 0), 0);
+
+  const shippingStatuses = SHIPPING_STATUSES.map((shippingStatus) => {
+    const current = statusMap.get(shippingStatus) || {
+      count: 0,
+      totalAmount: 0,
+    };
+
+    return {
+      shippingStatus,
+      count: current.count,
+      totalAmount: current.totalAmount,
+      percentage:
+        totalInvoices === 0
+          ? 0
+          : Number(((current.count / totalInvoices) * 100).toFixed(2)),
+    };
+  });
+
+  return {
+    totalInvoices,
+    shippingStatuses,
+  };
+}
+
 // GET /reports/summary (mit Redis-Cache)
 
 exports.getSummary = async (req, res) => {
@@ -298,6 +344,17 @@ exports.getStatusBreakdown = async (req, res) => {
     res.json(breakdown);
   } catch (err) {
     console.error("Fehler bei getStatusBreakdown:", err);
+    res.status(500).json({ message: "Interner Serverfehler" });
+  }
+};
+
+exports.getShippingStatusBreakdown = async (req, res) => {
+  try {
+    const breakdown = await calculateShippingStatusBreakdown();
+
+    res.json(breakdown);
+  } catch (err) {
+    console.error("Fehler bei getShippingStatusBreakdown:", err);
     res.status(500).json({ message: "Interner Serverfehler" });
   }
 };

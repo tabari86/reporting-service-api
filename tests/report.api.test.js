@@ -319,6 +319,153 @@ describe("Reporting Service API", () => {
     });
   });
 
+    describe("Shipping status breakdown", () => {
+    it("GET /reports/shipping-status-breakdown returns count, amount and percentage by shipping status", async () => {
+      await Invoice.create([
+        {
+          customerName: "Not Shipped Invoice",
+          amount: 100,
+          status: "PAID",
+          shippingStatus: "NOT_SHIPPED",
+        },
+        {
+          customerName: "Shipped Invoice",
+          amount: 200,
+          status: "PAID",
+          shippingStatus: "SHIPPED",
+        },
+        {
+          customerName: "In Transit Invoice",
+          amount: 300,
+          status: "OPEN",
+          shippingStatus: "IN_TRANSIT",
+        },
+        {
+          customerName: "Delivered Invoice",
+          amount: 400,
+          status: "PAID",
+          shippingStatus: "DELIVERED",
+        },
+      ]);
+
+      const res = await request(app)
+        .get("/reports/shipping-status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 4,
+        shippingStatuses: [
+          {
+            shippingStatus: "NOT_SHIPPED",
+            count: 1,
+            totalAmount: 100,
+            percentage: 25,
+          },
+          {
+            shippingStatus: "SHIPPED",
+            count: 1,
+            totalAmount: 200,
+            percentage: 25,
+          },
+          {
+            shippingStatus: "IN_TRANSIT",
+            count: 1,
+            totalAmount: 300,
+            percentage: 25,
+          },
+          {
+            shippingStatus: "DELIVERED",
+            count: 1,
+            totalAmount: 400,
+            percentage: 25,
+          },
+        ],
+      });
+    });
+
+    it("GET /reports/shipping-status-breakdown treats invoices without shippingStatus as NOT_SHIPPED", async () => {
+      await Invoice.collection.insertOne({
+        customerName: "Legacy Invoice",
+        amount: 150,
+        status: "OPEN",
+        createdAt: new Date(),
+      });
+
+      const res = await request(app)
+        .get("/reports/shipping-status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 1,
+        shippingStatuses: [
+          {
+            shippingStatus: "NOT_SHIPPED",
+            count: 1,
+            totalAmount: 150,
+            percentage: 100,
+          },
+          {
+            shippingStatus: "SHIPPED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            shippingStatus: "IN_TRANSIT",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            shippingStatus: "DELIVERED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+        ],
+      });
+    });
+
+    it("GET /reports/shipping-status-breakdown returns zero breakdown when no invoices exist", async () => {
+      const res = await request(app)
+        .get("/reports/shipping-status-breakdown")
+        .set("Authorization", `Bearer ${createTestToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalInvoices: 0,
+        shippingStatuses: [
+          {
+            shippingStatus: "NOT_SHIPPED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            shippingStatus: "SHIPPED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            shippingStatus: "IN_TRANSIT",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+          {
+            shippingStatus: "DELIVERED",
+            count: 0,
+            totalAmount: 0,
+            percentage: 0,
+          },
+        ],
+      });
+    });
+  });
+
   describe("Revenue per day", () => {
     it("GET /reports/revenue-per-day returns an empty array when no invoices exist", async () => {
       const res = await request(app)

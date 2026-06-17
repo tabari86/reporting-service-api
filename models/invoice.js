@@ -15,6 +15,11 @@ const invoiceSchema = new mongoose.Schema(
       enum: ["OPEN", "PAID", "CANCELLED"],
       default: "OPEN",
     },
+    shippingStatus: {
+      type: String,
+      enum: ["NOT_SHIPPED", "SHIPPED", "IN_TRANSIT", "DELIVERED"],
+      default: "NOT_SHIPPED",
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -24,7 +29,7 @@ const invoiceSchema = new mongoose.Schema(
     // Wir greifen auf die bestehende Collection "invoices" zu
     collection: "invoices",
     versionKey: false,
-  }
+  },
 );
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);

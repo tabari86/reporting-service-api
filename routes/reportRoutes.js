@@ -88,6 +88,29 @@ router.get("/status-breakdown", reportController.getStatusBreakdown);
 
 /**
  * @swagger
+ * /reports/shipping-status-breakdown:
+ *   get:
+ *     summary: Get shipping status breakdown
+ *     description: Returns invoice counts, amounts and percentages grouped by shipping status.
+ *     tags: [Reports]
+ *     security:
+ *       - ApiKeyAuth: []
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Shipping status breakdown returned successfully
+ *       401:
+ *         description: Missing or invalid authentication
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+  "/shipping-status-breakdown",
+  reportController.getShippingStatusBreakdown
+);
+
+/**
+ * @swagger
  * /reports/revenue-per-day:
  *   get:
  *     summary: Get revenue per day

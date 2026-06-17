@@ -69,6 +69,7 @@ Current features:
 * Invoice summary reporting
 * Date range summary reporting
 * Invoice status breakdown reporting
+* Shipping status breakdown reporting
 * Revenue grouped by day
 * Daily PDF report generation
 * API-Key protection for private endpoints
@@ -101,13 +102,14 @@ Planned improvements:
 
 ### Reporting
 
-| Method | Endpoint                                                  | Description                                              | Protection           |
-| ------ | --------------------------------------------------------- | -------------------------------------------------------- | -------------------- |
-| GET    | `/reports/summary`                                        | Invoice summary statistics                               | API-Key + JWT + role |
-| GET    | `/reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD` | Invoice summary for a specific date range                | API-Key + JWT + role |
-| GET    | `/reports/status-breakdown`                               | Invoice status breakdown by count, amount and percentage | API-Key + JWT + role |
-| GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                                   | API-Key + JWT + role |
-| GET    | `/reports/daily-report.pdf`                               | Generate PDF report                                      | API-Key + JWT + role |
+| Method | Endpoint                                                  | Description                                               | Protection           |
+| ------ | --------------------------------------------------------- | --------------------------------------------------------- | -------------------- |
+| GET    | `/reports/summary`                                        | Invoice summary statistics                                | API-Key + JWT + role |
+| GET    | `/reports/summary-by-range?from=YYYY-MM-DD&to=YYYY-MM-DD` | Invoice summary for a specific date range                 | API-Key + JWT + role |
+| GET    | `/reports/status-breakdown`                               | Invoice status breakdown by count, amount and percentage  | API-Key + JWT + role |
+| GET    | `/reports/shipping-status-breakdown`                      | Shipping status breakdown by count, amount and percentage | API-Key + JWT + role |
+| GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                                    | API-Key + JWT + role |
+| GET    | `/reports/daily-report.pdf`                               | Generate PDF report                                       | API-Key + JWT + role |
 
 Reporting endpoints are limited to users with one of the following roles:
 
@@ -179,6 +181,39 @@ admin
       "count": 1,
       "totalAmount": 100,
       "percentage": 8.33
+    }
+  ]
+}
+```
+### Shipping status breakdown
+
+```json
+{
+  "totalInvoices": 12,
+  "shippingStatuses": [
+    {
+      "shippingStatus": "NOT_SHIPPED",
+      "count": 3,
+      "totalAmount": 600,
+      "percentage": 25
+    },
+    {
+      "shippingStatus": "SHIPPED",
+      "count": 4,
+      "totalAmount": 900,
+      "percentage": 33.33
+    },
+    {
+      "shippingStatus": "IN_TRANSIT",
+      "count": 2,
+      "totalAmount": 350,
+      "percentage": 16.67
+    },
+    {
+      "shippingStatus": "DELIVERED",
+      "count": 3,
+      "totalAmount": 1200,
+      "percentage": 25
     }
   ]
 }
@@ -458,6 +493,7 @@ The tests cover:
 * Invoice summary aggregation
 * Date range summary reporting
 * Invoice status breakdown reporting
+* Shipping status breakdown reporting
 * Revenue grouped by day
 * PDF report generation
 * Monitoring endpoints
@@ -580,6 +616,8 @@ Current reporting rules:
 * PDF reports are generated from current reporting data.
 * Report responses may be cached when Redis is configured.
 * Redis is optional and must not make the service unavailable when it is not configured.
+* Shipping status breakdown reports group invoices by `shippingStatus`.
+* Existing invoices without `shippingStatus` are treated as `NOT_SHIPPED`.
 * MongoDB is required because it is the main reporting data source.
 * Missing required environment variables stop the service during startup.
 * Readiness depends on MongoDB, not on Redis.
@@ -611,6 +649,7 @@ Implemented:
 * Reporting API endpoints
 * Date range summary reporting
 * Invoice status breakdown reporting
+* Shipping status breakdown reporting
 * MongoDB aggregation for invoice analytics
 * PDF report generation
 * API-Key protection
@@ -653,28 +692,29 @@ Completed:
 3. Invoice summary reporting
 4. Date range summary reporting
 5. Invoice status breakdown reporting
-6. Revenue-per-day reporting
-7. PDF report generation
-8. API-Key protection
-9. JWT authentication
-10. Role-based report access
-11. Optional Redis caching
-12. Swagger / OpenAPI documentation
-13. Automated API tests
-14. Docker support
-15. Docker Compose setup
-16. GitHub Actions CI workflow
-17. Readiness endpoint
-18. Graceful shutdown handling
-19. Startup configuration validation
-20. Render deployment
-21. MongoDB Atlas production database connection
+6. Shipping status breakdown reporting
+7. Revenue-per-day reporting
+8. PDF report generation
+9. API-Key protection
+10. JWT authentication
+11. Role-based report access
+12. Optional Redis caching
+13. Swagger / OpenAPI documentation
+14. Automated API tests
+15. Docker support
+16. Docker Compose setup
+17. GitHub Actions CI workflow
+18. Readiness endpoint
+19. Graceful shutdown handling
+20. Startup configuration validation
+21. Render deployment
+22. MongoDB Atlas production database connection
 
 Next possible milestones:
 
-22. Structured logging improvements
-23. Centralized error handling
-24. Further production hardening
+23. Structured logging improvements
+24. Centralized error handling
+25. Further production hardening
 
 
 ---
