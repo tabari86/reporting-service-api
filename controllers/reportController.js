@@ -4,7 +4,7 @@ const { generateDailyReportPdf } = require("../services/pdfService");
 const cacheService = require("../services/cacheService");
 const INVOICE_STATUSES = ["OPEN", "PAID", "CANCELLED"];
 const SHIPPING_STATUSES = ["NOT_SHIPPED", "SHIPPED", "IN_TRANSIT", "DELIVERED"];
-// Aggregation für Summary 
+// Aggregation für Summary
 
 async function calculateSummary() {
   const result = await Invoice.aggregate([
@@ -60,7 +60,9 @@ function isValidDateString(value) {
 
   const date = new Date(`${value}T00:00:00.000Z`);
 
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  return (
+    !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
 }
 
 async function calculateSummaryByRange(fromDate, toDateExclusive) {
@@ -136,7 +138,7 @@ async function calculateStatusBreakdown() {
         count: row.count || 0,
         totalAmount: row.totalAmount || 0,
       },
-    ])
+    ]),
   );
 
   const totalInvoices = result.reduce((sum, row) => sum + (row.count || 0), 0);
@@ -182,7 +184,7 @@ async function calculateShippingStatusBreakdown() {
         count: row.count || 0,
         totalAmount: row.totalAmount || 0,
       },
-    ])
+    ]),
   );
 
   const totalInvoices = result.reduce((sum, row) => sum + (row.count || 0), 0);
@@ -289,7 +291,7 @@ exports.getRevenuePerDay = async (req, res) => {
     } catch (err) {
       console.warn(
         "Konnte Revenue-per-Day nicht in Cache speichern:",
-        err.message
+        err.message,
       );
     }
 
@@ -362,26 +364,41 @@ exports.getShippingStatusBreakdown = async (req, res) => {
 // Optionaler Export, falls Summary an anderen Stellen genutzt wird
 exports.calculateSummary = calculateSummary;
 
-// Diese Funktion wird vom Cron-Job genutzt
-exports.saveDailySummary = async () => {
+// Diese Funktion wird vom Cron-Job und vom manuellen Endpoint genutzt
+async function saveDailySummary() {
   const summary = await calculateSummary();
 
   const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
+  const dailySummary = {
+    date: today,
+    totalInvoices: summary.totalInvoices,
+    totalRevenue: summary.totalRevenue,
+    openInvoices: summary.openInvoices,
+    paidInvoices: summary.paidInvoices,
+    cancelledInvoices: summary.cancelledInvoices,
+  };
+
   await DailyReport.findOneAndUpdate(
     { date: today },
-    {
-      date: today,
-      totalInvoices: summary.totalInvoices,
-      totalRevenue: summary.totalRevenue,
-      openInvoices: summary.openInvoices,
-      paidInvoices: summary.paidInvoices,
-      cancelledInvoices: summary.cancelledInvoices,
-    },
+    dailySummary,
     { upsert: true }
   );
 
-  return summary;
+  return dailySummary;
+}
+
+exports.saveDailySummary = saveDailySummary;
+
+exports.createDailySummary = async (req, res) => {
+  try {
+    const dailySummary = await saveDailySummary();
+
+    res.json(dailySummary);
+  } catch (err) {
+    console.error("Fehler bei createDailySummary:", err);
+    res.status(500).json({ message: "Interner Serverfehler" });
+  }
 };
 
 // PDF-Report für den aktuellen Tag

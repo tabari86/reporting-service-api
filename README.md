@@ -15,6 +15,16 @@ A backend microservice for invoice reporting, revenue analytics, PDF report gene
 
 The service is designed as a reporting component that could be part of a larger invoice, ERP or back-office system.
 
+## Live API Documentation
+
+Production Swagger UI:
+
+```text
+https://reporting-service-api.onrender.com/api-docs
+```
+
+Note: The service runs on Render's free plan, so the first request after inactivity may take a few seconds.
+
 ---
 
 ## Project Goal
@@ -72,6 +82,7 @@ Current features:
 * Shipping status breakdown reporting
 * Revenue grouped by day
 * Daily PDF report generation
+* Manual daily summary snapshot generation
 * API-Key protection for private endpoints
 * JWT authentication for reporting routes
 * Role-based access control for reports
@@ -109,6 +120,7 @@ Planned improvements:
 | GET    | `/reports/status-breakdown`                               | Invoice status breakdown by count, amount and percentage  | API-Key + JWT + role |
 | GET    | `/reports/shipping-status-breakdown`                      | Shipping status breakdown by count, amount and percentage | API-Key + JWT + role |
 | GET    | `/reports/revenue-per-day`                                | Revenue grouped by day                                    | API-Key + JWT + role |
+| POST   | `/reports/daily-summaries`                                | Create or update today's daily summary snapshot           | API-Key + JWT + role |
 | GET    | `/reports/daily-report.pdf`                               | Generate PDF report                                       | API-Key + JWT + role |
 
 Reporting endpoints are limited to users with one of the following roles:
@@ -235,6 +247,18 @@ admin
   }
 ]
 ```
+
+### Daily summary snapshot
+
+```json
+{
+  "date": "2026-06-17",
+  "totalInvoices": 12,
+  "totalRevenue": 2450,
+  "openInvoices": 4,
+  "paidInvoices": 7,
+  "cancelledInvoices": 1
+}
 
 ### Readiness response
 
@@ -495,6 +519,7 @@ The tests cover:
 * Invoice status breakdown reporting
 * Shipping status breakdown reporting
 * Revenue grouped by day
+* Daily summary snapshot generation
 * PDF report generation
 * Monitoring endpoints
 * Readiness endpoint behavior
@@ -624,6 +649,8 @@ Current reporting rules:
 * Health checks and readiness checks are public operational endpoints.
 * Date range summaries only include invoices created within the requested date range.
 * Date range requests require `from` and `to` query parameters in `YYYY-MM-DD` format.
+* Daily summary snapshots are generated from current invoice summary data.
+* Manual daily summary generation creates or updates the snapshot for the current day.
 
 
 ---
@@ -632,7 +659,7 @@ Current reporting rules:
 
 The project separates operational concerns from reporting concerns.
 
-Reporting endpoints focus on business data such as invoice totals, revenue grouped by day and PDF report generation.
+Reporting endpoints focus on business data such as invoice totals, invoice status distribution, shipping status distribution, revenue grouped by day, daily summary snapshots and PDF report generation.
 
 Operational endpoints focus on runtime behavior such as process health, dependency readiness and metrics.
 
@@ -669,6 +696,7 @@ Implemented:
 * Docker build validation in CI
 * Live deployment on Render
 * MongoDB Atlas production database connection
+* Manual daily summary snapshot generation
 
 
 Current focus:
@@ -695,26 +723,27 @@ Completed:
 6. Shipping status breakdown reporting
 7. Revenue-per-day reporting
 8. PDF report generation
-9. API-Key protection
-10. JWT authentication
-11. Role-based report access
-12. Optional Redis caching
-13. Swagger / OpenAPI documentation
-14. Automated API tests
-15. Docker support
-16. Docker Compose setup
-17. GitHub Actions CI workflow
-18. Readiness endpoint
-19. Graceful shutdown handling
-20. Startup configuration validation
-21. Render deployment
-22. MongoDB Atlas production database connection
+9. Manual daily summary snapshot generation
+10. API-Key protection
+11. JWT authentication
+12. Role-based report access
+13. Optional Redis caching
+14. Swagger / OpenAPI documentation
+15. Automated API tests
+16. Docker support
+17. Docker Compose setup
+18. GitHub Actions CI workflow
+19. Readiness endpoint
+20. Graceful shutdown handling
+21. Startup configuration validation
+22. Render deployment
+23. MongoDB Atlas production database connection
 
 Next possible milestones:
 
-23. Structured logging improvements
-24. Centralized error handling
-25. Further production hardening
+24. Structured logging improvements
+25. Centralized error handling
+26. Further production hardening
 
 
 ---

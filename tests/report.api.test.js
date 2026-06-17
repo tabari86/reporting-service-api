@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const app = require("../index");
 const jwt = require("jsonwebtoken");
 const Invoice = require("../models/invoice");
+const DailyReport = require("../models/dailyReport");
 
 const TEST_JWT_SECRET = process.env.JWT_SECRET || "test-reporting-jwt-secret";
 
@@ -20,6 +21,11 @@ function createTestToken(role = "report_reader") {
 describe("Reporting Service API", () => {
   beforeEach(async () => {
     await Invoice.deleteMany({});
+    await DailyReport.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
   });
 
   afterAll(async () => {
@@ -521,4 +527,48 @@ describe("Reporting Service API", () => {
       ]);
     });
   });
+  describe("Daily summary snapshots", () => {
+  it("POST /reports/daily-summaries creates or updates the daily summary snapshot", async () => {
+    await Invoice.create([
+      {
+        customerName: "Open Invoice",
+        amount: 100,
+        status: "OPEN",
+      },
+      {
+        customerName: "Paid Invoice",
+        amount: 250,
+        status: "PAID",
+      },
+      {
+        customerName: "Cancelled Invoice",
+        amount: 50,
+        status: "CANCELLED",
+      },
+    ]);
+
+    const res = await request(app)
+      .post("/reports/daily-summaries")
+      .set("Authorization", `Bearer ${createTestToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      date: expect.any(String),
+      totalInvoices: 3,
+      totalRevenue: 400,
+      openInvoices: 1,
+      paidInvoices: 1,
+      cancelledInvoices: 1,
+    });
+
+    const savedReport = await DailyReport.findOne({ date: res.body.date });
+
+    expect(savedReport).not.toBeNull();
+    expect(savedReport.totalInvoices).toBe(3);
+    expect(savedReport.totalRevenue).toBe(400);
+    expect(savedReport.openInvoices).toBe(1);
+    expect(savedReport.paidInvoices).toBe(1);
+    expect(savedReport.cancelledInvoices).toBe(1);
+  });
+});
 });

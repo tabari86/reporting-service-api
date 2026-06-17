@@ -132,6 +132,26 @@ router.get("/revenue-per-day", reportController.getRevenuePerDay);
 
 /**
  * @swagger
+ * /reports/daily-summaries:
+ *   post:
+ *     summary: Create or update daily summary snapshot
+ *     description: Manually calculates the current invoice summary and stores it as the daily summary snapshot for today.
+ *     tags: [Reports]
+ *     security:
+ *       - ApiKeyAuth: []
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Daily summary snapshot created or updated successfully
+ *       401:
+ *         description: Missing or invalid authentication
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/daily-summaries", reportController.createDailySummary);
+
+/**
+ * @swagger
  * /reports/daily-report.pdf:
  *   get:
  *     summary: Download daily report as PDF
