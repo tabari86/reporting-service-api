@@ -1,5 +1,6 @@
 node_modules
 npm-debug.log
+*.log
 
 .env
 .env.*
@@ -10,7 +11,13 @@ npm-debug.log
 .github
 
 coverage
-.DS_Store
+tests
+jest.config.cjs
 
+docs
 README.md
-docs/swagger-ui.png
+
+Dockerfile
+docker-compose.yml
+
+.DS_Store

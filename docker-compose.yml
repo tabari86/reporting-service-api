@@ -9,11 +9,9 @@ services:
       MONGODB_URI: mongodb://mongo:27017/reporting_service
       API_KEY: local-dev-api-key
       JWT_SECRET: local-dev-jwt-secret
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: ${REDIS_URL:-}
     depends_on:
       mongo:
-        condition: service_healthy
-      redis:
         condition: service_healthy
 
   mongo:
@@ -24,7 +22,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,8 +32,10 @@ services:
     container_name: reporting-service-redis
     ports:
       - "6379:6379"
+    profiles:
+      - cache
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5

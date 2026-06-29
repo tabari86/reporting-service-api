@@ -457,23 +457,7 @@ http://localhost:4000/api-docs
 
 ## Run with Docker
 
-Build the Docker image:
-
-```bash
-docker build -t reporting-service-api .
-```
-
-Run the container manually:
-
-```bash
-docker run -p 4000:4000 reporting-service-api
-```
-
-For manual container runs, MongoDB and optional Redis must already be available and configured through environment variables.
-
-### Docker Compose
-
-Docker Compose starts the API together with MongoDB and Redis:
+Docker Compose is the recommended local setup for this project. It starts the API together with MongoDB, which is required by the reporting service.
 
 ```bash
 docker compose up --build
@@ -483,9 +467,8 @@ The local Compose setup includes:
 
 * API service on port `4000`
 * MongoDB on port `27017`
-* Redis on port `6379`
-* MongoDB volume for persistent local data
-* Health checks for MongoDB and Redis before starting the API
+* persistent MongoDB volume for local data
+* MongoDB health check before starting the API
 
 Stop the local stack:
 
@@ -498,6 +481,26 @@ Stop the stack and remove the MongoDB volume:
 ```bash
 docker compose down -v
 ```
+
+Redis is optional. The default Docker Compose setup does not start Redis and leaves caching disabled.
+
+To start Redis for local cache testing, enable the `cache` profile and provide a Redis URL.
+
+PowerShell:
+
+```powershell
+$env:REDIS_URL = "redis://redis:6379"
+docker compose --profile cache up --build
+Remove-Item Env:\REDIS_URL
+```
+
+Git Bash / macOS / Linux:
+
+```bash
+REDIS_URL=redis://redis:6379 docker compose --profile cache up --build
+```
+
+Manual `docker run` is not the recommended local setup because the service requires MongoDB and environment variables. Use Docker Compose unless you intentionally want to connect the container to an external MongoDB instance.
 
 ---
 
