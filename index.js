@@ -5,6 +5,7 @@ const envFile = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 
 require("dotenv").config({
   path: path.resolve(__dirname, envFile),
+  quiet: true,
 });
 
 const express = require("express");
@@ -16,7 +17,6 @@ const requestLogger = require("./middleware/requestLogger");
 const reportRoutes = require("./routes/reportRoutes");
 const reportController = require("./controllers/reportController");
 const { sendTestEmail } = require("./services/mailService");
-const setupSwagger = require("./swagger/reportingSwagger");
 const apiKeyAuth = require("./middleware/apiKeyAuth");
 const jwtAuth = require("./middleware/jwtAuth");
 const requireRole = require("./middleware/requireRole");
@@ -77,6 +77,7 @@ app.get("/health", (req, res) => {
 
 // Swagger/OpenAPI (nur außerhalb von Tests)
 if (process.env.NODE_ENV !== "test") {
+  const setupSwagger = require("./swagger/reportingSwagger");
   setupSwagger(app);
 }
 

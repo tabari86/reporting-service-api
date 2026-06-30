@@ -91,9 +91,10 @@ Current features:
 * Health endpoint
 * Readiness endpoint with dependency status
 * Runtime metrics endpoint
+* Request correlation IDs with `X-Request-Id`
 * Graceful shutdown handling
 * Dockerfile for API container
-* Docker Compose setup with MongoDB and Redis
+* Docker Compose setup with required MongoDB and optional Redis
 * Automated tests with Jest and Supertest
 * GitHub Actions CI workflow
 * Docker image build validation in CI
@@ -104,7 +105,7 @@ Current features:
 Planned improvements:
 
 * Further production hardening
-* Structured logging improvements
+* Structured JSON logging improvements
 
 
 ---
@@ -574,6 +575,16 @@ MongoDB is treated as a required dependency. If MongoDB is not connected, the re
 
 Redis is optional. If Redis is not configured or temporarily unavailable, the service can still serve reports by reading from MongoDB.
 
+
+### Request correlation IDs
+
+Every request receives an `X-Request-Id` response header.
+
+If a client sends an `X-Request-Id` header, the service reuses that value. Otherwise, the service generates a request ID and includes it in the request log output.
+
+This makes individual requests easier to trace across API responses and service logs.
+
+
 ### Runtime metrics
 
 ```text
@@ -581,6 +592,7 @@ http://localhost:4000/metrics
 ```
 
 `/metrics` exposes basic runtime information such as uptime and memory usage.
+
 
 ### Graceful shutdown
 
@@ -690,10 +702,11 @@ Implemented:
 * Health endpoint
 * Readiness endpoint
 * Runtime metrics endpoint
+* Request correlation IDs for operational request tracing
 * Graceful shutdown handling
 * Startup configuration validation
 * Dockerfile
-* Docker Compose setup with MongoDB and Redis
+* Docker Compose setup with required MongoDB and optional Redis
 * Automated API tests
 * GitHub Actions CI workflow
 * Docker build validation in CI
@@ -708,7 +721,7 @@ Current focus:
 
 Planned improvements:
 
-* Structured logging improvements
+* Structured JSON logging improvements
 * Centralized error handling
 * Further production hardening
 
@@ -741,12 +754,13 @@ Completed:
 21. Startup configuration validation
 22. Render deployment
 23. MongoDB Atlas production database connection
+24. Request correlation IDs
 
 Next possible milestones:
 
-24. Structured logging improvements
-25. Centralized error handling
-26. Further production hardening
+25. Structured JSON logging improvements
+26. Centralized error handling
+27. Further production hardening
 
 
 ---
